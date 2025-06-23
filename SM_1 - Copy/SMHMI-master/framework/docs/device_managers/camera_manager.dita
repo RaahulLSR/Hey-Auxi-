@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="camera-manager">
+    <title>Camera manager</title>
+    <body>
+        <p>Camera manager manages the camera HAL devices that can be registered into the system.</p>
+    </body>
+    <topic id="apis">
+        <title>APIs</title>
+        <body/>
+        <topic id="fwk-cameramanager-init">
+            <title>FWK_CameraManager_Init</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Init internal structures for Camera manager.
+ * @return int Return 0 if the init process was successful
+ */
+int FWK_CameraManager_Init();</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-cameramanager-deviceregister">
+            <title>FWK_CameraManager_DeviceRegister</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Register a camera device. All camera devices need to be registered before FWK_CameraManager_Start is called
+ * @param dev Pointer to a camera device structure
+ * @return int Return 0 if registration was successful
+ */
+int FWK_CameraManager_DeviceRegister(camera_dev_t *dev);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-cameramanager-start">
+            <title>FWK_CameraManager_Start</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Spawn Camera manager task which will call init/start for all registered camera devices
+ * @return int Return 0 if the starting process was successul
+ */
+int FWK_CameraManager_Start();</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-cameramanager-deinit">
+            <title>FWK_CameraManager_Deinit</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Deinit CameraManager
+ * @return int Return 0 if the deinit process was successful
+ */
+int FWK_CameraManager_Deinit();</codeblock>
+                <codeblock xml:space="preserve">Calling this function is unnecessary in most applications and must be used with caution.</codeblock>
+            </body>
+        </topic>
+    </topic>
+</topic>

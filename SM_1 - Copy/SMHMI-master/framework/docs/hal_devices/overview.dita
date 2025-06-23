@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="overview">
+    <title>Overview</title>
+    <body>
+        <p>One of the most important steps in the the creation of any embedded software project is
+            peripheral integration. Unfortunately, this step can often be one of the most time
+            intensive steps of the process. Additionally, peripheral drivers are often heavily tied
+            to the specific platform which those drivers were originally written for, which makes
+            upgrading/moving to another platform difficult and costly.</p>
+        <p>The <b>Hardware Abstraction Layer (HAL)</b> component of the framework architecture was
+            designed in direct response to these issues.</p>
+        <p>HAL devices are designed to be written "on top of" lower level driver code, helping to
+            increase code understandability by abstracting many of the underlying details, HAL
+            devices are also designed to be reused across different projects and even different NXP
+            platforms, increasing code reuse which can help cut down on development time.</p>
+    </body>
+    <topic id="device-registration">
+        <title>Device Registration</title>
+        <body>
+            <p>In order for a manager to communicate with a HAL device, that device must first be
+                registered to its respective manager. Registration of each HAL device takes place at
+                the beginning of application startup when <codeph>main()</codeph> calls the
+                    <codeph>APP_RegisterHalDevices()</codeph> function as shown below:</p>
+            <codeblock xml:space="preserve" outputclass="c">int main(void)
+{
+    /* Init board hardware. */
+    APP_BoardInit();
+    LOGD("[MAIN]:Started");
+    /* init the framework*/
+    APP_InitFramework();
+
+    /* register the hal devices*/
+    APP_RegisterHalDevices();
+
+    /* start the framework*/
+    APP_StartFramework();
+
+    // start
+    vTaskStartScheduler();
+
+    while (1)
+    {
+        LOGD("#");
+    }
+
+    return 0;
+}</codeblock>
+            <p>To register a device to its manager, each HAL device implements a registration
+                function which is called prior to starting the managers themselves. For example, the
+                "register" function for the push button input device looks as follows:</p>
+            <codeblock xml:space="preserve" outputclass="c">int HAL_InputDev_PushButtons_Register()
+{
+    int error = 0;
+    LOGD("input_dev_push_buttons_register");
+    error = FWK_InputManager_DeviceRegister(&amp;s_InputDev_PushButtons);
+    return error;
+}</codeblock>
+            <p>Because HAL devices do not have header ".h" files associated with them, the
+                registration function for each device is exposed via the "board_define.h" file found
+                inside the "boards" folder. Each HAL device to be registered on startup must be
+                added to the <codeph>APP_RegisterHalDevices</codeph> function in the
+                "board_hal_registration.c" file. The "board_hal_registration.c" file is also found
+                in the "boards" folder.</p>
+        </body>
+    </topic>
+    <topic id="device-types">
+        <title>Device Types</title>
+        <body>
+            <p>There are several different device types to encapsulate the various peripherals which
+                a user may wish to incorporate into their project. These device types include:</p>
+            <ul>
+                <li><p>Input</p></li>
+                <li><p>Output</p></li>
+                <li><p>Camera</p></li>
+                <li><p>Display</p></li>
+                <li><p>VAlgo (Vision/Voice)</p></li>
+            </ul>
+            <p>As well as a few others which are not listed here.</p>
+            <p>Each device type has specific methods and fields based on the unique characteristics
+                of that device type. For example, the camera HAL device definition looks as
+                follows:</p>
+            <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Callback function to notify camera manager that one frame is dequeued
+ * @param dev Device structure of the camera device calling this function
+ * @param event id of the event that took place
+ * @param param Parameters
+ * @param fromISR True if this operation takes place in an irq, 0 otherwise
+ * @return 0 if the operation was successfully
+ */
+typedef int (*camera_dev_callback_t)(const camera_dev_t *dev, camera_event_t event, void *param, uint8_t fromISR);
+
+/*! @brief Operation that needs to be implemented by a camera device */
+typedef struct _camera_dev_operator
+{
+    /* initialize the dev */
+    hal_camera_status_t (*init)(camera_dev_t *dev, int width, int height, camera_dev_callback_t callback, void *param);
+    /* deinitialize the dev */
+    hal_camera_status_t (*deinit)(camera_dev_t *dev);
+    /* start the dev */
+    hal_camera_status_t (*start)(const camera_dev_t *dev);
+    /* enqueue a buffer to the dev */
+    hal_camera_status_t (*enqueue)(const camera_dev_t *dev, void *data);
+    /* dequeue a buffer from the dev */
+    hal_camera_status_t (*dequeue)(const camera_dev_t *dev, void **data, pixel_format_t *format);
+    /* postProcess a buffer from the dev */
+    /*
+     * Only do the minimum determination(data point and the format) of the frame in the dequeue.
+     *
+     * And split the CPU based post process(IR/Depth/... processing) to postProcess as they will eat CPU
+     * which is critical for the whole system as camera manager is running with the highest priority.
+     *
+     * Camera manager will do the postProcess if there is a consumer of this frame.
+     *
+     * Note:
+     * Camera manager will call multiple times of the posProcess of the same frame determinted by dequeue.
+     * The HAL driver needs to guarantee the postProcess only do once for the first call.
+     *
+     */
+    hal_camera_status_t (*postProcess)(const camera_dev_t *dev, void **data, pixel_format_t *format);
+    /* input notify */
+    hal_camera_status_t (*inputNotify)(const camera_dev_t *dev, void *data);
+} camera_dev_operator_t;
+
+/*! @brief Structure that characterize the camera device. */
+typedef struct
+{
+    /* buffer resolution */
+    int height;
+    int width;
+    int pitch;
+    /* active rect */
+    int left;
+    int top;
+    int right;
+    int bottom;
+    /* rotate degree */
+    cw_rotate_degree_t rotate;
+    /* flip */
+    flip_mode_t flip;
+    /* swap byte per two bytes */
+    int swapByte;
+} camera_dev_static_config_t;</codeblock>
+            <p>In many ways, HAL devices can be thought of as similar to interfaces in C++ and other
+                object-oriented languages.</p>
+        </body>
+    </topic>
+    <topic id="anatomy-of-a-hal-device">
+        <title>Anatomy of a HAL device</title>
+        <body>
+            <p>HAL devices are made up of several components which can vary by device type. However,
+                each HAL device regardless of type has at least 3 components:</p>
+            <ul>
+                <li><p><codeph>id</codeph></p></li>
+                <li><p><codeph>name</codeph></p></li>
+                <li><p><codeph>operators</codeph></p></li>
+            </ul>
+            <p>The <codeph>id</codeph> field is a unique device identifier which is assigned by the
+                device's manager when the device is first registered.</p>
+            <p>The <codeph>name</codeph> field is used to help identify the device during various
+                function calls and when debugging.</p>
+            <p>The <codeph>operators</codeph> field is a struct which contains function pointers to
+                each of the functions that the HAL device is required to implement. The operators
+                which a device is required to implement will vary based on the device type.</p>
+            <p>A HAL device's definition is stored in a struct which gets passed to that device's
+                respective manager when the device is registered. This gives the manager information
+                about the device and allows the manager to call the device's operators when
+                necessary.</p>
+        </body>
+        <topic id="operators">
+            <title>Operators</title>
+            <body>
+                <p>Operators are functions that "operate" on the device itself, and are used by the
+                    device's manager to control the device and/or augment its behavior. Operators
+                    are used for initializing, starting, and stopping devices, as well as serving
+                    many other functions depending on the device.</p>
+                <p>As mentioned previously, the operators a HAL device must implement varies based
+                    on device type. For example, input devices must implement an
+                        <codeph>init</codeph>, <codeph>deinit</codeph>, <codeph>start</codeph>,
+                        <codeph>stop</codeph>, and <codeph>inputNotify</codeph> function.</p>
+                <codeblock xml:space="preserve" outputclass="c">typedef struct
+{
+    /* initialize the dev */
+    hal_input_status_t (*init)(input_dev_t *dev, input_dev_callback_t callback);
+    /* deinitialize the dev */
+    hal_input_status_t (*deinit)(const input_dev_t *dev);
+    /* start the dev */
+    hal_input_status_t (*start)(const input_dev_t *dev);
+    /* stop the dev */
+    hal_input_status_t (*stop)(const input_dev_t *dev);
+    /* notify the input_dev */
+    hal_input_status_t (*inputNotify)(const input_dev_t *dev, void *param);
+} input_dev_operator_t;</codeblock>
+                <p>Generally, each device regardless of type will have at least a
+                        <codeph>start</codeph>, <codeph>stop</codeph>, <codeph>init</codeph>, and
+                        <codeph>deinit</codeph> function. Additionally, most devices will also
+                    implement an <codeph>inputNotify</codeph> function which is used for event
+                    handling(refer to "events/event_handlers.md").</p>
+                <codeblock xml:space="preserve">Failing to implement a function will not prevent the HAL device from being registered,
+but is likely to prevent certain functionality from working.
+For example,
+failing to provide an implementation for a HAL device's `start` function will prevent its respective manager from starting that device.</codeblock>
+            </body>
+        </topic>
+    </topic>
+    <topic id="configs">
+        <title>Configs</title>
+        <body>
+            <codeblock xml:space="preserve">This section describes a feature which is currently being developed.</codeblock>
+            <p>Configs represent the individual, configurable attributes specific to a HAL device.
+                The configs available for a device varies from device to device, but can be altered
+                during runtime via user input or by other devices and can be saved to flash to
+                retain the same value through power cycles.</p>
+            <p>For example, the HAL device for the IR/White LEDs may only have a "brightness"
+                config, while a speaker device may have configs for "volume", "left/right balance",
+                etc.</p>
+            <codeblock xml:space="preserve">Each device can have a maximum of `MAXIMUM_CONFIGS_PER_DEVICE` configs (see "framework/inc/fwk_common.h").</codeblock>
+            <p>Each device config regardless of device type has the same fields:</p>
+            <ul>
+                <li><p><xref href="#name" format="html"><codeph>name</codeph></xref></p></li>
+                <li><p><xref href="#expectedValue" format="html"
+                            ><codeph>expectedValue</codeph></xref></p></li>
+                <li><p><xref href="#description" format="html"
+                        ><codeph>description</codeph></xref></p></li>
+                <li><p><xref href="#value" format="html"><codeph>value</codeph></xref></p></li>
+                <li><p><xref href="#get" format="html"><codeph>get</codeph></xref></p></li>
+                <li><p><xref href="#set" format="html"><codeph>set</codeph></xref></p></li>
+            </ul>
+        </body>
+        <topic id="name">
+            <title>name</title>
+            <body>
+                <p>A string containing the name of the config. The string length should be less than
+                    DEVICE_CONFIG_NAME_MAX_LENGTH.</p>
+                <codeblock xml:space="preserve" outputclass="c">char name[DEVICE_CONFIG_NAME_MAX_LENGTH];</codeblock>
+            </body>
+        </topic>
+        <topic id="expectedvalue">
+            <title>expectedValue</title>
+            <body>
+                <p>A string which provides a description of the valid values associated with the
+                    config. The length of the string should be less than
+                        <codeph>DEVICE_CONFIG_EXPECTED_VAL_MAX_LENGTH</codeph>.</p>
+                <codeblock xml:space="preserve" outputclass="c">char expectedValue[DEVICE_CONFIG_EXPECTED_VAL_MAX_LENGTH];</codeblock>
+            </body>
+        </topic>
+        <topic id="description">
+            <title>description</title>
+            <body>
+                <p>A string which provides a description of the config. The length of the string
+                    should be less than DEVICE_CONFIG_DESCRIPTION_MAX_LENGTH.</p>
+                <codeblock xml:space="preserve" outputclass="c">char description[DEVICE_CONFIG_DESCRIPTION_MAX_LENGTH];</codeblock>
+            </body>
+        </topic>
+        <topic id="value">
+            <title>value</title>
+            <body>
+                <p>An int which stores the internal value of the config. <codeph>value</codeph>
+                    should be set using the <codeph>set</codeph> function and retrieved using the
+                        <codeph>get</codeph> function.</p>
+                <codeblock xml:space="preserve" outputclass="c">uint32_t value;</codeblock>
+            </body>
+        </topic>
+        <topic id="get">
+            <title>get</title>
+            <body>
+                <p>A function which returns the <codeph>value</codeph> of the config.</p>
+                <codeblock xml:space="preserve" outputclass="c">status_t (*get)(char *valueToString);</codeblock>
+            </body>
+        </topic>
+        <topic id="set">
+            <title>set</title>
+            <body>
+                <p>A function which sets the <codeph>value</codeph> of the config.</p>
+                <codeblock xml:space="preserve" outputclass="c">status_t (*set)(char *configName, uint32_t value);</codeblock>
+            </body>
+        </topic>
+    </topic>
+</topic>

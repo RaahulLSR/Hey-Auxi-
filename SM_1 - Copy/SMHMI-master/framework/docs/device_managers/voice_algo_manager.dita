@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="voice-algorithm-manager">
+    <title>Voice algorithm manager</title>
+    <body>
+        <p>The Voice algorithm manager manages the voice algorithm HAL devices that can be
+            registered into the system.</p>
+    </body>
+    <topic id="apis">
+        <title>APIs</title>
+        <body/>
+        <topic id="fwk-voicealgomanager-init">
+            <title>FWK_VoiceAlgoManager_Init</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Init internal structures for VisionAlgo manager.
+ * @return int Return 0 if the init process was successful
+ */
+int FWK_VoiceAlgoManager_Init();</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-voicealgomanager-deviceregister">
+            <title>FWK_VoiceAlgoManager_DeviceRegister</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Register a voice algorithm device. All algorithm devices need to be registered before
+ * FWK_VoiceAlgoManager_Start is called
+ * @param dev Pointer to a vision algo device structure
+ * @return int Return 0 if registration was successful
+ */
+int FWK_VoiceAlgoManager_DeviceRegister(voice_algo_dev_t *dev);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-voicealgomanager-start">
+            <title>FWK_VoiceAlgoManager_Start</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Spawn VisionAlgo manager task which will call init/start for all registered VisionAlgo devices
+ * @return int Return 0 if the starting process was successful
+ */
+int FWK_VoiceAlgoManager_Start();</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-voicealgomanager-deinit">
+            <title>FWK_VoiceAlgoManager_Deinit</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Deinit VisionAlgoManager
+ * @return int Return 0 if the deinit process was successful
+ */
+int FWK_VoiceAlgoManager_Deinit();</codeblock>
+                <codeblock xml:space="preserve">Calling this function is unnecessary in most applications and must be used with caution.</codeblock>
+            </body>
+        </topic>
+    </topic>
+</topic>

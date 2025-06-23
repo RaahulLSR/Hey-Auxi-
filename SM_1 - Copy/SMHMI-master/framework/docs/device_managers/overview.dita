@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="overview">
+    <title>Overview</title>
+    <body>
+        <p>As the name would imply, device managers are responsible for "managing" devices used by
+            the system. Each device type (input, output, and so on.) has its own type-specific
+            device manager.</p>
+        <p>A device manager serves two primary purposes:</p>
+        <ul>
+            <li><p>Initializing and starting each device registered to that manager</p></li>
+            <li><p>Sending data to and receiving data from each device registered to that
+                    manager</p></li>
+        </ul>
+        <p>This section avoids low-level implementation details of the device managers and instead
+            focus on the device manager APIs and the startup flow for the device managers. The
+            device managers themselves are provided as a library binary file to, in part, help
+            abstract the underlying implementation details and encourage developers to focus on the
+            HAL devices being managed instead.</p>
+        <codeblock xml:space="preserve">The device managers themselves are provided as a library binary file in the `framework` folder,
+while the APIs for each manager can be found in the "framework/inc" folder.</codeblock>
+    </body>
+    <topic id="initialization-flow">
+        <title>Initialization Flow</title>
+        <body>
+            <p>Before a device manager can properly manage devices, it must follow a specific
+                startup process. The startup process for device managers is summarized as
+                follows:</p>
+            <ol>
+                <li><p>Initialize managers</p></li>
+                <li><p>Register each device to their respective manager</p></li>
+                <li><p>Start managers</p></li>
+            </ol>
+            <p>This process is clearly demonstrated in the <codeph>main</codeph> function found in
+                "source/main.cpp" file.</p>
+            <codeblock xml:space="preserve" outputclass="c">/*
+ * @brief   Application entry point.
+ */
+int main(void)
+{
+    /* Init board hardware. */
+    APP_BoardInit();
+    LOGD("[MAIN]:Started");
+    /* init the framework*/
+    APP_InitFramework();
+
+    /* register the hal devices*/
+    APP_RegisterHalDevices();
+
+    /* start the framework*/
+    APP_StartFramework();
+
+    // start
+    vTaskStartScheduler();
+
+    while (1)
+    {
+        LOGD("#");
+    }
+
+    return 0;
+}</codeblock>
+            <p>As part of a manager's <codeph>start</codeph> routine, the manager calls the
+                    <codeph>init</codeph> and <codeph>start</codeph> functions of each of its
+                registered devices.</p>
+            <codeblock xml:space="preserve">In general,
+developers should only be concerned with adding/removing devices from the `APP_RegisterHalDevices()` function as the `Init` and `Start` functions for each manager is already called by default inside the `APP_InitFramework()` and `APP_StartFramework()` functions in `main()`.</codeblock>
+        </body>
+    </topic>
+</topic>

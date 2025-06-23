@@ -1,0 +1,71 @@
+// resource_build home_panel_resource.txt
+//
+//
+// home_panel_resource.txt format
+// each line for one file description
+//
+// type file_name
+//
+/*
+image ../../home_panel/resource/images/_hp_bg21_1280x720.c
+image ../../home_panel/resource/images/_iot_page_1280x720.c
+image ../../home_panel/resource/images/_ylight_alpha_254x211.c
+image ../../home_panel/resource/images/_blightt_alpha_254x211.c
+image ../../home_panel/resource/images/_glightt_alpha_254x211.c
+image ../../home_panel/resource/images/_thermometer_alpha_100x65.c
+image ../../home_panel/resource/images/_thermometer_alpha_81x65.c
+image ../../home_panel/resource/images/_airquality_alpha_116x88.c
+image ../../home_panel/resource/images/_lockscreen_alpha_466x474.c
+image ../../home_panel/resource/images/_img_heart_alpha_100x65.c
+image ../../home_panel/resource/images/_img_ekg_alpha_100x65.c
+image ../../home_panel/resource/images/_icn_water_alpha_100x100.c
+image ../../home_panel/resource/images/_btn1_alpha_224x99.c
+image ../../home_panel/resource/images/_arrow2_alpha_100x100.c
+image ../../home_panel/resource/images/_stop4_alpha_102x104.c
+image ../../home_panel/resource/images/_btn1_alpha_194x91.c
+image ../../home_panel/resource/images/_kidspage_1280x720.c
+image ../../home_panel/resource/images/_bg1_1280x720.c
+image ../../home_panel/resource/images/_btn4_alpha_299x177.c
+image ../../home_panel/resource/images/_btn4_alpha_469x278.c
+image ../../home_panel/resource/images/_btn4_alpha_296x174.c
+icon ../../home_panel/resource/icons/process_bar_240x14.h
+sound ../../home_panel/resource/sounds/prompts/beep.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/buzz.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/demo1.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/demo10.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/demo11.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/demo12.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/demo13.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/demo14.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/demo15.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/demo16.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/demo17.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/demo2.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/demo3.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/demo4.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/demo5.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/demo6.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/demo7.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/demo8.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/demo9.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/draw.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/good morning.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/good night.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/how are you.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/intro song.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/introduce yourself.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/lose.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/nice to meet you too.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/robot greet.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/tell me a joke.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/turning off lights.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/win.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/turning on lights.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/twinkle11.h
+sound ../../home_panel/resource/sounds/prompts/EN/Salli/twinkle22.h
+model ../../home_panel/cm7/local_voice/oob_demo_vit/en/VIT_Model_Main_Menu_en.h
+model ../../home_panel/cm7/local_voice/oob_demo_vit/en/VIT_Model_Thermostat_en.h
+model ../../home_panel/cm7/local_voice/oob_demo_vit/en/VIT_Model_Security_en.h
+model ../../home_panel/cm7/local_voice/oob_demo_vit/en/VIT_Model_Audio_Player_en.h
+*/
+

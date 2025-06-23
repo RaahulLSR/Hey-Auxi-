@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="display-manager">
+    <title>Display manager</title>
+    <body>
+        <p>Display manager manages the display HAL devices that can be registered into the
+            system.</p>
+    </body>
+    <topic id="apis">
+        <title>APIs</title>
+        <body/>
+        <topic id="fwk-displaymanager-init">
+            <title>FWK_DisplayManager_Init</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Init internal structures for display manager.
+ * @return int Return 0 if the init process was successful
+ */
+int FWK_DisplayManager_Init();</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-displaymanager-deviceregister">
+            <title>FWK_DisplayManager_DeviceRegister</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Register a display device. All display devices need to be registered before FWK_DisplayManager_Start is
+ * called.
+ * @param dev Pointer to a display device structure
+ * @return int Return 0 if registration was successful
+ */
+int FWK_DisplayManager_DeviceRegister(display_dev_t *dev);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-displaymanager-start">
+            <title>FWK_DisplayManager_Start</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Spawn Display manager task which will call init/start for all registered display devices. Will start the flow
+ * to recive frames from the camera.
+ * @return int Return 0 if starting was successful
+ */
+int FWK_DisplayManager_Start();</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-displaymanager-deinit">
+            <title>FWK_DisplayManager_Deinit</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Init internal structures for display manager.
+ * @return int Return 0 if the init process was successful
+ */
+int FWK_DisplayManager_Deinit();</codeblock>
+                <codeblock xml:space="preserve">Calling this function is unnecessary in most applications and must be used with caution.</codeblock>
+            </body>
+        </topic>
+    </topic>
+</topic>

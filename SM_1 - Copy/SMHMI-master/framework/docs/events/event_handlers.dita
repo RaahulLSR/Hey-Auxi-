@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="event-handlers">
+    <title>Event handlers</title>
+    <body>
+        <p>Because events are the primary means by which the framework communicates between devices,
+            a mechanism to respond to those events is necessary for them to be useful. Event
+            handlers were created for this explicit purpose.</p>
+        <p>There are two kinds of event handler:</p>
+        <ul>
+            <li><p><codeph>Default Handlers</codeph></p></li>
+            <li><p><codeph>App-specific Handlers</codeph></p></li>
+        </ul>
+        <p>Event handlers, like other device operators, are passed via the device's operator struct
+            to its manager.</p>
+        <codeblock xml:space="preserve" outputclass="c">const static display_dev_operator_t s_DisplayDev_LcdifOps = {
+    .init        = HAL_DisplayDev_LcdifRk024hh2_Init,
+    .deinit      = HAL_DisplayDev_LcdifRk024hh2_Uninit,
+    .start       = HAL_DisplayDev_LcdifRk024hh2_Start,
+    .blit        = HAL_DisplayDev_LcdifRk024hh2_Blit,
+    .inputNotify = HAL_DisplayDev_LcdifRk024hh2_InputNotify,
+};</codeblock>
+        <p>Each HAL device may define its own handlers for any given event. For example, a developer
+            may want the RGB LEDs to turn green when a face is recognized, but have the UI display a
+            specific overlay for that same event. To do it, the RGB Output HAL device and the UI
+            Output HAL device can each implement an <codeph>InferComplete</codeph> handler which
+            will be called by their manager when an "InferComplete" event is received.</p>
+        <codeblock xml:space="preserve">A HAL device does NOT have to implement an event handler for any specific event,
+nor does it have to implement an `InputNotify` handler (applicable for most device types)
+or an `InferComplete` handler (applicable only for output devices).</codeblock>
+    </body>
+    <topic id="default-handlers">
+        <title>Default handlers</title>
+        <body>
+            <p>Default event handlers are exactly what their name would suggest -- the default means
+                by which a device handles events. A HAL device's default event handlers
+                    (<codeph>InputNotify</codeph>, <codeph>InferComplete</codeph>, and so on.) can
+                be found in the HAL device driver itself.</p>
+            <p>Nearly every device has a default handler implemented, although most devices will
+                only actually handle a few types of events.</p>
+            <codeblock xml:space="preserve">Devices which do not have a handler implemented can be extended to have one by using a similar device as an example.</codeblock>
+            <codeblock xml:space="preserve" outputclass="c">static hal_display_status_t HAL_DisplayDev_LcdifRk024hh2_InputNotify(const display_dev_t *receiver, void *data)
+{
+    hal_display_status_t error           = kStatus_HAL_DisplaySuccess;
+    event_base_t eventBase               = *(event_base_t *)data;
+    event_status_t event_response_status = kEventStatus_Ok;
+
+    if (eventBase.eventId == kEventID_SetDisplayOutputSource)
+    {
+        event_common_t event             = *(event_common_t *)data;
+        s_DisplayDev_Lcdif.cap.srcFormat = event.displayOutput.displayOutputSource;
+        s_NewBufferSet                   = true;
+        if (eventBase.respond != NULL)
+        {
+            eventBase.respond(eventBase.eventId, &amp;event.displayOutput, event_response_status, true);
+        }
+        LOGI("[display_dev_inputNotify]: kEventID_SetDisplayOutputSource devID %d, srcFormat %d", receiver-&gt;id,
+             event.displayOutput.displayOutputSource);
+    }
+    else if (eventBase.eventId == kEventID_GetDisplayOutputSource)
+    {
+        display_output_event_t display;
+        display.displayOutputSource = s_DisplayDev_Lcdif.cap.srcFormat;
+        if (eventBase.respond != NULL)
+        {
+            eventBase.respond(eventBase.eventId, &amp;display, event_response_status, true);
+        }
+        LOGI("[display_dev_inputNotify]: kEventID_GetDisplayOutputSource devID %d, srcFormat %d", receiver-&gt;id,
+             display.displayOutputSource);
+    }
+
+    return error;
+}</codeblock>
+            <p>Some devices will not handle any events at all and will instead return
+                    <codeph>0</codeph> after performing no action.</p>
+            <codeblock xml:space="preserve" outputclass="c">hal_camera_status_t HAL_CameraDev_CsiGc0308_InputNotify(const camera_dev_t *dev, void *data)
+{
+    hal_camera_status_t ret = kStatus_HAL_CameraSuccess;
+
+    return ret;
+}</codeblock>
+            <p>Alternatively, some devices which do not require an event handler may simply return a
+                    <codeph>NULL</codeph> pointer instead.</p>
+            <codeblock xml:space="preserve" outputclass="c">const static display_dev_operator_t s_DisplayDev_LcdifOps = {
+    .init        = HAL_DisplayDev_Lcdifv2Rk055ah_Init,
+    .deinit      = HAL_DisplayDev_Lcdifv2Rk055ah_Deinit,
+    .start       = HAL_DisplayDev_Lcdifv2Rk055ah_Start,
+    .blit        = HAL_DisplayDev_Lcdifv2Rk055ah_Blit,
+    .inputNotify = NULL,
+};</codeblock>
+            <p>Managers will not call the <codeph>InputNotify</codeph> or other handler if that
+                handler points to <codeph>NULL</codeph>.</p>
+            <p>A device's default handler whether for <codeph>InputNotify</codeph> events or
+                    <codeph>InferComplete</codeph> or otherwise can be overridden by an
+                    <codeph>app-specific</codeph> handler.</p>
+        </body>
+    </topic>
+    <topic id="app-specific-handlers">
+        <title>App-specific handlers</title>
+        <body>
+            <p>App-specific handlers are device handlers which are defined for a specific "app".</p>
+            <p>Not every device must implement an app-specific handler, but because default handlers
+                are implemented using <codeph>WEAK</codeph> functions, any device which has a
+                default event handler can have that handler overridden.</p>
+            <codeblock xml:space="preserve">Some devices may not have implemented their default handlers using `WEAK` functions,
+but may be updated to do so in the future.</codeblock>
+            <p>For example, the IR + White LEDs may not require project-specific handlers because
+                they always react the same way to a
+                    <codeph>kEventID_SetConfig</codeph>/<codeph>kEventID_GetConfig</codeph> command.
+                Alternatively, an application may wish to override and/or extend that default event
+                handling behavior so that, for example, the LEDs increase in brightness when an "Add
+                Face" event is received.</p>
+            <p>To help denote an app-specific handler, App-specific handlers start with the
+                    <codeph>APP</codeph> prefix. If an app-specific handler for a device exists, it
+                can be found in
+                    <codeph>source/event_handlers/{APP_NAME}_{DEV_TYPE}_{DEV_NAME}.c</codeph></p>
+        </body>
+    </topic>
+</topic>

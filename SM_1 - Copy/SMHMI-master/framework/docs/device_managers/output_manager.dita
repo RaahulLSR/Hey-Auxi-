@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="output-manager">
+    <title>Output manager</title>
+    <body>
+        <p>The Output manager manages the output HAL devices that can be registered into the
+            system.</p>
+    </body>
+    <topic id="apis">
+        <title>APIs</title>
+        <body/>
+        <topic id="fwk-outputmanager-init">
+            <title>FWK_OutputManager_Init</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Init internal structures for output manager.
+ * @return int Return 0 if the init process was successful
+ */
+int FWK_OutputManager_Init();</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-outputmanager-deviceregister">
+            <title>FWK_OutputManager_DeviceRegister</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Register a display device. All display devices need to be registered before FWK_OutputManager_Start is called.
+ * @param dev Pointer to an output device structure
+ * @return int Return 0 if registration was successful
+ */
+int FWK_OutputManager_DeviceRegister(output_dev_t *dev);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-outputmanager-start">
+            <title>FWK_OutputManager_Start</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Spawn output manager task which will call init/start for all registered output devices.
+ * @return int Return 0 if starting was successful
+ */
+int FWK_OutputManager_Start();</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-outputmanager-deinit">
+            <title>FWK_OutputManager_Deinit</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief DeInit internal structures for output manager.
+ * @return int Return 0 if the deinit process was successful
+ */
+int FWK_OutputManager_Deinit();</codeblock>
+                <codeblock xml:space="preserve">Calling this function is unnecessary in most applications and should be used with caution.</codeblock>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief A registered output device doesn't need to be also active. After the start procedure, the output device
+ *          can register a handler of capabilities to receive events.
+ * @param dev Device that register the handler
+ * @param handler Pointer to a handler
+ * @return int Return 0 if the registration of the event handler was successful
+ */
+int FWK_OutputManager_RegisterEventHandler(const output_dev_t *dev, const output_dev_event_handler_t *handler);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-outputmanager-unregistereventhandler">
+            <title>FWK_OutputManager_UnregisterEventHandler</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief A registered output device doesn't need to be also active. A device can call this function to unsubscribe
+ * from receiving events
+ * @param dev Device that unregister the handler
+ * @return int Return 0 if the deregistration of the event handler was successful
+ */
+int FWK_OutputManager_UnregisterEventHandler(const output_dev_t *dev);</codeblock>
+            </body>
+        </topic>
+    </topic>
+</topic>

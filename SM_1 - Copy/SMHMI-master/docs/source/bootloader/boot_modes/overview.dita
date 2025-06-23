@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="overview">
+    <title>Overview</title>
+    <prolog>
+        <data name="sidebar_position" value="1"/>
+    </prolog>
+    <body>
+        <p>The bootloader employs several different boot-up methods to augment the boot-up behavior.
+            Currently, the bootloader supports two primary boot modes:</p>
+        <ul>
+            <li><p>Normal Mode(refer to "normal_boot.md")</p></li>
+            <li><p>Mass Storage Device (MSD) Update Mode(refer to
+                    "mass_storage_device_updates.md")</p></li>
+        </ul>
+        <p>Normal mode, as the name would imply, is the default boot mode in which the bootloader
+            simply loads the main application.</p>
+        <p>Mass Storage Device Update mode is a special boot mode in which the board enters an
+            update state where the board appears as a mass storage device to a host PC device. In
+            this mode, the bootloader is capable of receiving and flashing a new binary by copying
+            that binary to the board as one would for a regular USB storage device.</p>
+        <p>More information on each of these modes can be found in the subsequent sections of this
+            document.</p>
+    </body>
+    <topic id="how-is-boot-mode-determined">
+        <title>How is boot mode determined?</title>
+        <body>
+            <p>To determine the boot mode, the bootloader checks several different boot flags, which
+                are set based on various conditions.</p>
+            <p>For each different boot mode (excluding Normal boot, which is taken by default),
+                there is a different corresponding boot flag. Boot flag gets set depending on the
+                boot mode in question and the platform being used. On the SLN-TLHMI-IOT, for
+                example, the MSD boot flag is set when the <codeph>SW0</codeph> button is held
+                during bootup.</p>
+        </body>
+    </topic>
+</topic>

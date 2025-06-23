@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="audio-processing-manager">
+    <title>Audio processing manager</title>
+    <body>
+        <p>The Audio processing manager manages the audio processing HAL devices which can be
+            registered into the system.</p>
+    </body>
+    <topic id="apis">
+        <title>APIs</title>
+        <body/>
+        <topic id="fwk-audioprocessing-init">
+            <title>FWK_AudioProcessing_Init</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Init Audio Processing manager
+ *
+ * @return int Return 0 if the init process was successful
+ */
+int FWK_AudioProcessing_Init(void);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-audioprocessing-deviceregister">
+            <title>FWK_AudioProcessing_DeviceRegister</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Register an audio processing device
+ *
+ * @param dev Pointer to an Audio Processing device
+ * @return int Return 0 if the register was successful
+ */
+int FWK_AudioProcessing_DeviceRegister(audio_processing_dev_t *dev);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-audioprocessing-start">
+            <title>FWK_AudioProcessing_Start</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Start Audio Processing manager
+ *
+ * @return int Return 0 if the starting process was successful
+ */
+int FWK_AudioProcessing_Start(void);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-audioprocessing-deinit">
+            <title>FWK_AudioProcessing_Deinit</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Deinit Audio Processing manager
+ *
+ * @return int Return 0 if the deit process was successful
+ */
+int FWK_AudioProcessing_Deinit(void);</codeblock>
+                <codeblock xml:space="preserve">Calling this function is unnecessary in most applications and must be used with caution.</codeblock>
+            </body>
+        </topic>
+    </topic>
+</topic>

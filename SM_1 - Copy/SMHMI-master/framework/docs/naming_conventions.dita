@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="naming-conventions">
+    <title>Naming Conventions</title>
+    <body>
+        <p>The framework code adheres to a set of naming conventions for making the code easily
+            readable and searchable using modern code completion tools.</p>
+        <codeblock xml:space="preserve">The naming conventions described below apply *only* to framework-related code that is primarily located in the`framework` folder, and `source`  folder of the application.</codeblock>
+    </body>
+    <topic id="functions">
+        <title>Functions</title>
+        <body>
+            <p>Functions names follow the format of
+                    <codeph>{APP/FWK/HAL}_{DevType}_{DevName}_{Action}</codeph>.</p>
+            <p><b>For example:</b></p>
+            <codeblock xml:space="preserve" outputclass="c">hal_input_status_t HAL_InputDev_PushButtons_Start(const input_dev_t *dev);</codeblock>
+            <p>To increase searchability using code completion tools functions for each framework
+                component have their own prefix denoting the component they relate to:</p>
+            <ul>
+                <li><p><codeph>APP</codeph> - app-specific function. Usually device registration or
+                        event handler-related.</p></li>
+                <li><p><codeph>FWK</codeph> - framework-specific function. Usually framework API
+                        function.</p></li>
+                <li><p><codeph>HAL</codeph> - HAL-specific function. Usually HAL device
+                        operators.</p></li>
+            </ul>
+            <p>Additionally, an underscore <codeph>_</codeph> may be placed in front of a function
+                name to indicate that the function is
+                    <codeph>static</codeph>/<codeph>private</codeph>.</p>
+            <codeblock xml:space="preserve">Static functions oftentimes exclude all but the underscore and the `Action` as the component, devType, and devName are implicit.</codeblock>
+            <p><b>For example:</b></p>
+            <codeblock xml:space="preserve" outputclass="c">static shell_status_t _VersionCommand(shell_handle_t shellContextHandle, int32_t argc, char **argv);
+static shell_status_t _ResetCommand(shell_handle_t shellContextHandle, int32_t argc, char **argv);
+static shell_status_t _SaveCommand(shell_handle_t shellContextHandle, int32_t argc, char **argv);
+static shell_status_t _AddCommand(shell_handle_t shellContextHandle, int32_t argc, char **argv);
+static shell_status_t _DelCommand(shell_handle_t shellContextHandle, int32_t argc, char **argv);</codeblock>
+            <p>Following one of the above prefixes is the device type of the device defining the
+                function.</p>
+            <ul>
+                <li><p><codeph>InputDev</codeph></p></li>
+                <li><p><codeph>OutputDev</codeph></p></li>
+                <li><p><codeph>CameraDev</codeph></p></li>
+                <li><p><codeph>DisplayDev</codeph></p></li>
+                <li><p>and so forth.</p></li>
+            </ul>
+            <p>As the device type is the name of the device, the name must match the name of the
+                device specified in the filename.</p>
+            <p><b>For example:</b></p>
+            <codeblock xml:space="preserve" outputclass="c">hal_input_status_t HAL_InputDev_PushButtons_Start(const input_dev_t *dev);</codeblock>
+            <p>The name of the device ends with the "action" performed on/by the device. It could be
+                anything including <codeph>Start</codeph>, <codeph>Stop</codeph>,
+                    <codeph>Register</codeph>, etc.</p>
+            <p>Below are several examples of different function names.</p>
+            <codeblock xml:space="preserve" outputclass="c">void APP_InputDev_Shell_RegisterShellCommands(shell_handle_t shellContextHandle,
+                                              input_dev_t *shellDev,
+                                              input_dev_callback_t callback)
+{
+    s_InputCallback            = callback;
+    s_SourceShell              = shellDev;
+    s_ShellHandle              = shellContextHandle;
+    s_FrameworkRequest.respond = _FrameworkEventsHandler;
+    SHELL_RegisterCommand(shellContextHandle, SHELL_COMMAND(version));
+    SHELL_RegisterCommand(shellContextHandle, SHELL_COMMAND(reset));
+    SHELL_RegisterCommand(shellContextHandle, SHELL_COMMAND(save));
+    SHELL_RegisterCommand(shellContextHandle, SHELL_COMMAND(add));</codeblock>
+            <codeblock xml:space="preserve" outputclass="c">int HAL_InputDev_PushButtons_Register()
+{
+    int error = 0;
+    LOGD("input_dev_push_buttons_register");
+    error = FWK_InputManager_DeviceRegister(&amp;s_InputDev_PushButtons);
+    return error;
+}</codeblock>
+            <codeblock xml:space="preserve" outputclass="c">hal_input_status_t HAL_InputDev_PushButtons_Init(input_dev_t *dev, input_dev_callback_t callback);
+hal_input_status_t HAL_InputDev_PushButtons_Deinit(const input_dev_t *dev);
+hal_input_status_t HAL_InputDev_PushButtons_Start(const input_dev_t *dev);
+hal_input_status_t HAL_InputDev_PushButtons_Stop(const input_dev_t *dev);
+hal_input_status_t HAL_InputDev_PushButtons_InputNotify(const input_dev_t *dev, void *param);</codeblock>
+        </body>
+    </topic>
+    <topic id="variables">
+        <title>Variables</title>
+        <body>
+            <p>Local and global variables use <codeph>camelCase</codeph>.</p>
+            <codeblock xml:space="preserve" outputclass="c">static hal_output_status_t HAL_OutputDev_RgbLed_InferComplete(const output_dev_t *dev,
+                                                              output_algo_source_t source,
+                                                              void *inferResult)
+{
+    vision_algo_result_t *visionAlgoResult = (vision_algo_result_t *)inferResult;
+    hal_output_status_t error              = kStatus_HAL_OutputSuccess;</codeblock>
+            <p>Static variables are prefixed with <codeph>s_PascalCase</codeph></p>
+            <p><b>For example:</b></p>
+            <codeblock xml:space="preserve" outputclass="c">static event_common_t s_CommonEvent;
+static event_face_rec_t s_FaceRecEvent;
+static event_recording_t s_RecordingEvent;
+static input_event_t s_InputEvent;
+static framework_request_t s_FrameworkRequest;
+static input_dev_callback_t s_InputCallback;
+static input_dev_t *s_SourceShell; /* Shell device that commands are sent over */
+static shell_handle_t s_ShellHandle;</codeblock>
+        </body>
+    </topic>
+    <topic id="typedefs">
+        <title>Typedefs</title>
+        <body>
+            <p>Type definitions are written in <codeph>snake_case</codeph> and end in
+                    <codeph>_t</codeph>.</p>
+            <p><b>For example:</b></p>
+            <codeblock xml:space="preserve" outputclass="c">typedef struct
+{
+    fwk_task_t task;
+    input_task_data_t inputData;
+} input_task_t;</codeblock>
+        </body>
+    </topic>
+    <topic id="enums">
+        <title>Enums</title>
+        <body>
+            <p>Enumerations are written in the the form <codeph>kEventType_State</codeph>.</p>
+            <p><b>For example:</b></p>
+            <codeblock xml:space="preserve" outputclass="c">typedef enum _rgb_led_color
+{
+    kRGBLedColor_Red,    /*!&lt; LED Red Color */
+    kRGBLedColor_Orange, /*!&lt; LED Orange Color */
+    kRGBLedColor_Yellow, /*!&lt; LED Yellow Color */
+    kRGBLedColor_Green,  /*!&lt; LED Green Color */
+    kRGBLedColor_Blue,   /*!&lt; LED Blue Color */
+    kRGBLedColor_Purple, /*!&lt; LED Purple Color */
+    kRGBLedColor_Cyan,   /*!&lt; LED Cyan Color */
+    kRGBLedColor_White,  /*!&lt; LED White Color */
+    kRGBLedColor_Off,    /*!&lt; LED Off */
+} rgbLedColor_t;</codeblock>
+            <p>Enumerations for a status specifically must be written in the form
+                    <codeph>kStatus_{Component}_{State}</codeph>.</p>
+            <p><b>For example:</b></p>
+            <codeblock xml:space="preserve" outputclass="c">/*! @brief Error codes for input hal devices */
+typedef enum _hal_input_status
+{
+    kStatus_HAL_InputSuccess = 0,                                                      /*!&lt; Successfully */
+    kStatus_HAL_InputError   = MAKE_FRAMEWORK_STATUS(kStatusFrameworkGroups_Input, 1), /*!&lt; Error occurs */
+} hal_input_status_t;</codeblock>
+        </body>
+    </topic>
+    <topic id="macros-and-defines">
+        <title>Macros and Defines</title>
+        <body>
+            <p>Defines are written in all caps.</p>
+            <p><b>For example:</b></p>
+            <codeblock xml:space="preserve" outputclass="c">#define INPUT_DEV_PB_WAKE_GPIO        BOARD_USER_BUTTON_GPIO
+#define INPUT_DEV_PB_WAKE_GPIO_PIN    BOARD_USER_BUTTON_GPIO_PIN
+#define INPUT_DEV_SW1_GPIO            BOARD_BUTTON_SW1_GPIO
+#define INPUT_DEV_SW1_GPIO_PIN        BOARD_BUTTON_SW1_PIN
+#define INPUT_DEV_SW2_GPIO            BOARD_BUTTON_SW2_GPIO
+#define INPUT_DEV_SW2_GPIO_PIN        BOARD_BUTTON_SW2_PIN
+#define INPUT_DEV_SW3_GPIO            BOARD_BUTTON_SW3_GPIO
+#define INPUT_DEV_SW3_GPIO_PIN        BOARD_BUTTON_SW3_PIN
+#define INPUT_DEV_PUSH_BUTTONS_IRQ    GPIO13_Combined_0_31_IRQn
+#define INPUT_DEV_PUSH_BUTTON_SW1_IRQ BOARD_BUTTON_SW1_IRQ
+#define INPUT_DEV_PUSH_BUTTON_SW2_IRQ BOARD_BUTTON_SW2_IRQ
+#define INPUT_DEV_PUSH_BUTTON_SW3_IRQ BOARD_BUTTON_SW3_IRQ</codeblock>
+        </body>
+    </topic>
+</topic>

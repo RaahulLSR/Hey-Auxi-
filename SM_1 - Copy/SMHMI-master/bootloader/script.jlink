@@ -1,0 +1,7 @@
+ExitOnError 1
+r
+h
+loadfile "C:\Users\nxg04789\OneDrive - NXP\Desktop\INFORMATION\Boards\SMHMI_iMX_RT117H\sln_smart_tlhmi\bootloader\Debug\bootloader.hex"
+qc
+
+qc

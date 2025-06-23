@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dita PUBLIC "-//OASIS//DTD DITA Composite//EN" "ditabase.dtd">
+<dita>
+    <topic id="introduction">
+        <title>Introduction</title>
+        <body>
+            <p>This Elevator application demonstrates the elevator use-case with the core
+                functionalities:</p>
+            <ul>
+                <li><p>Elevator GUI with touch support</p></li>
+                <li><p>Local voice command to control the use cases of elevator</p></li>
+                <li><p>Face recognition to store user's floor information automatically</p></li>
+            </ul>
+            <p>For leveraging the full computational power of the RT117H, the image has been split
+                into two images that are running in parallel on the CM7 and CM4 cores. The Elevator
+                CM7 acts as an AI block, handling all the machine learning operation, such as face
+                recognition and voice command. The operation has been optimized in order to obtain
+                the best performance on this type of MCU. Elevator CM4 holds the user interaction
+                (display, shell, buttons). The CM4 image is being loaded into memory by the CM7
+                core.</p>
+            <p>By default, i.MX RT117H boot from CM7. By fusing BT_CORE_SEL (Bit 12 in 0x960), the
+                chip switches to CM4 as the main core. For more information on this topic, check
+                    <xref href="https://www.nxp.com/docs/en/application-note/AN13264.pdf"
+                    format="pdf" scope="external">Application Note 13264</xref>.</p>
+            <p>The Elevator Application uses following HW components and peripherals:</p>
+            <ul>
+                <li><p>2 x PDM MIC - configured to work with 16 kHz sampling. The conversion to PCM
+                        is done in hardware using the PDM microphone interface.</p></li>
+                <li><p>16 KHz raw data to RT117x MQS HW peripheral that generates PWM data
+                        output.</p></li>
+                <li><p>External filtering and coupling.</p></li>
+                <li><p>Analog audio amplifier.</p></li>
+                <li><p>MIPI GC2145 Camera - configured to work at 600x800 resolution.</p></li>
+                <li><p>LCDIFV2 Rocktech RK055MHD091 - configured to work at HD resolution of
+                        1280x720.</p></li>
+            </ul>
+            <p>To change this configuration check HAL code and "How to develop user app" section</p>
+        </body>
+    </topic>
+    <topic id="architecture">
+        <title>Architecture</title>
+        <body>
+            <fig>
+                <image href="img/elevator_software_architecture.JPG"/>
+            </fig>
+        </body>
+    </topic>
+    <topic id="software-block-diagram">
+        <title>Software Block Diagram</title>
+        <body>
+            <fig>
+                <image href="img/elevator_software_diagram.JPG"/>
+            </fig>
+            <p>It includes two projects as below:</p>
+            <p>-Host CM7 project</p>
+            <p>-Slave CM4 project</p>
+            <p>Each project uses a two layer architecture containing the "Framework + HAL" layer,
+                and the "Application" layer. For more information refer to the documentations on
+                each project.</p>
+        </body>
+    </topic>
+</dita>

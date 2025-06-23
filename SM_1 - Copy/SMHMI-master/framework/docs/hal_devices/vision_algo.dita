@@ -1,0 +1,431 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="vision-algorithm-devices">
+    <title>Vision Algorithm Devices</title>
+    <body>
+        <p>The Vision Algorithm HAL device type represents an abstraction for computer vision
+            algorithms which are used for analysis of digital images, videos, and other visual
+            inputs.</p>
+        <p>The crux of the design for Vision Algorithm devices is centered around the use of "infer
+            complete" events which communicate information about the results of inferencing which is
+            handled by the device. For example, in the current application, the Vision Algorithm may
+            receive a camera frame containing a recognized face, perform an inference on that data,
+            and communicate a "face recognized" message to other devices so that they may act
+            accordingly. For more information about events and event handling, see
+            "/events/overview.md" file.</p>
+        <p>Currently, only one vision algorithm device can be registered to the Vision Manager at a
+            time per the design of the framework.</p>
+    </body>
+    <topic id="device-definition">
+        <title>Device Definition</title>
+        <body>
+            <p>The HAL device definition for vision algorithm devices can be found in
+                "framework/hal_api/hal_valgo_dev.h" and is reproduced below:</p>
+            <codeblock xml:space="preserve" outputclass="c">/*! @brief definition of a vision algo device */
+typedef struct _vision_algo_dev
+{
+    /* unique id which is assigned by vision algorithm manager during the registration */
+    int id;
+    /* name to identify */
+    char name[DEVICE_NAME_MAX_LENGTH];
+    /* private capability */
+    valgo_dev_private_capability_t cap;
+    /* operations */
+    vision_algo_dev_operator_t *ops;
+    /* private data */
+    vision_algo_private_data_t data;
+} vision_algo_dev;</codeblock>
+            <p>The <codeph>operators</codeph> associated with the vision algo HAL device are as
+                shown below:</p>
+            <codeblock xml:space="preserve" outputclass="c">/*! @brief Operation that needs to be implemented by a vision algorithm device */
+typedef struct
+{
+    /* initialize the dev */
+    hal_valgo_status_t (*init)(vision_algo_dev_t *dev, valgo_dev_callback_t callback, void *param);
+    /* deinitialize the dev */
+    hal_valgo_status_t (*deinit)(vision_algo_dev_t *dev);
+    /* run the inference */
+    hal_valgo_status_t (*run)(const vision_algo_dev_t *dev, void *data);
+    /* recv events */
+    hal_valgo_status_t (*inputNotify)(const vision_algo_dev_t *receiver, void *data);
+
+} vision_algo_dev_operator_t;</codeblock>
+            <p>The <codeph>capabilities</codeph> associated with the vision algo HAL device are as
+                shown below:</p>
+            <codeblock xml:space="preserve" outputclass="c">typedef struct _valgo_dev_private_capability
+{
+    /* callback */
+    valgo_dev_callback_t callback;
+    /* param for the callback */
+    void *param;
+} valgo_dev_private_capability_t;</codeblock>
+            <p>The <codeph>private data</codeph> fields associated with the vision algo HAL device
+                is as shown below:</p>
+            <codeblock xml:space="preserve" outputclass="c">typedef struct
+{
+    int autoStart;
+    /* frame type definition */
+    vision_frame_t frames[kVAlgoFrameID_Count];
+} vision_algo_private_data_t;</codeblock>
+        </body>
+    </topic>
+    <topic id="operators">
+        <title>Operators</title>
+        <body>
+            <p>Operators are functions which "operate" on a HAL device itself. Operators are akin to
+                "public methods" in object oriented-languages, and are used by the Vision Algorithm
+                Manager to setup, start, etc. its registered vision algo device.</p>
+            <p>For more information about operators, see "overview.md" file.</p>
+        </body>
+        <topic id="init">
+            <title>Init</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">hal_valgo_status_t (*init)(vision_algo_dev_t *dev, valgo_dev_callback_t callback, void *param);</codeblock>
+                <p>Init the vision algo HAL device.</p>
+                <p><codeph>Init</codeph> should initialize any hardware resources the device
+                    requires (I/O ports, IRQs, etc.), turn on the hardware, and perform any other
+                    setup required by the device.</p>
+                <p>The <codeph>callback</codeph> function to the device's manager is typically
+                    installed as part of the <codeph>Init</codeph> function as well.</p>
+                <p>This operator will be called by the vision algorithm manager when the output
+                    manager task first starts.</p>
+            </body>
+        </topic>
+        <topic id="deinit">
+            <title>Deinit</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">hal_valgo_status_t (*deinit)(vision_algo_dev_t *dev);</codeblock>
+                <p>The <codeph>DeInit</codeph> function is used to "deinitialize" the algorithm
+                    device. <codeph>DeInit</codeph> should release any hardware resources the device
+                    uses (I/O ports, IRQs, etc.), turn off the hardware, and perform any other
+                    shutdown required by the device.</p>
+                <p>This operator will be called by the Vision Algorithm Manager when the Vision
+                    Algorithm Manager task ends<sup>[1]</sup>.</p>
+                <codeblock xml:space="preserve"><sup>[1]</sup>The `DeInit` function generally will not be called under normal operation.</codeblock>
+            </body>
+        </topic>
+        <topic id="run">
+            <title>Run</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">hal_valgo_status_t (*run)(const voice_algo_dev_t *dev, void *data);</codeblock>
+                <p>Begin running the vision algorithm.</p>
+                <p>The <codeph>run</codeph> operator is used to start running algorithm inference
+                    and processing camera frame data.</p>
+                <p>This operator is called by the Vision Algorithm manager when a "camera frame
+                    ready" message is received from the Camera Manager and forwarded to the
+                    algorithm device via the Vision Algorithm Manager.</p>
+                <p>Once the Vision Algorithm device finishes processing the camera frame data, its
+                    manager will forward this message to the Output Manager in the form of an
+                    "inference complete" message.</p>
+            </body>
+        </topic>
+        <topic id="inputnotify">
+            <title>InputNotify</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">hal_valgo_status_t (*inputNotify)(const vision_algo_dev_t *receiver, void *data);</codeblock>
+                <p>Handle input events.</p>
+                <p>The <codeph>InputNotify</codeph> operator is called by the Vision Algorithm
+                    Manager whenever a <codeph>kFWKMessageID_InputNotify</codeph> message is
+                    received and forwarded from the Vision Algorithm Manager's message queue.</p>
+                <p>For more information regarding events and event handling, see "overview.md"
+                    file..</p>
+            </body>
+        </topic>
+    </topic>
+    <topic id="capabilities">
+        <title>Capabilities</title>
+        <body>
+            <p>The <codeph>capabilities</codeph> struct is primarily used for storing a callback to
+                communicate information from the device back to the Vision Algorithm Manager. This
+                callback function is typically installed via a device's <codeph>init</codeph>
+                operator.</p>
+        </body>
+        <topic id="callback">
+            <title>callback</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/*!
+ * @brief Callback function to notify managers the results of inference
+ * valgo_dev* dev Pointer to an algorithm device
+ * valgo_event_t event Event which took place
+ * persistent memory area.
+ */
+
+typedef int (*valgo_dev_callback_t)(int devId, valgo_event_t event, uint8_t fromISR);</codeblock>
+                <codeblock xml:space="preserve" outputclass="c">valgo_dev_callback_t callback;</codeblock>
+                <p>Callback to the Vision Algorithm Manager.</p>
+                <p>The Vision Algorithm manager will provide the callback to the device when the
+                        <codeph>init</codeph> operator is called. As a result, the HAL device should
+                    make sure to store the callback in the <codeph>init</codeph> operator's
+                    implementation.</p>
+                <codeblock xml:space="preserve" outputclass="c">static hal_valgo_status_t HAL_VisionAlgoDev_ExampleDev_Init(vision_algo_dev_t *dev,
+                                                           valgo_dev_callback_t callback,
+                                                           void *param)
+{
+    hal_valgo_status_t ret = kStatus_HAL_ValgoSuccess;
+
+    /* PERFORM INIT FUNCTIONALITY HERE */
+
+    ...
+
+    /* Installing callback function from manager... */
+    memset(&amp;dev-&gt;cap, 0, sizeof(dev-&gt;cap));
+    dev-&gt;cap.callback = callback;
+
+    return ret;
+}</codeblock>
+                <p>The HAL device invokes this callback to notify the Vision Algorithm manager of
+                    specific events.</p>
+                <p>The event structure is the following.</p>
+                <codeblock xml:space="preserve" outputclass="c">/*! @brief Structure used to define an event.*/
+typedef struct _valgo_event
+{
+    /* Eventid from the list above.*/
+    valgo_event_id_t eventId;
+    event_info_t     eventInfo;
+    /* Pointer to a struct of data that needs to be forwarded. */
+    void *data;
+    /* Size of the struct that needs to be forwarded. */
+    unsigned int size;
+    /* If copy is set to 1, the framework will forward a copy of the data. */
+    unsigned char copy;
+} valgo_event_t;</codeblock>
+                <p>All the events, which are identifiable by the eventId, can be send to:</p>
+                <ul>
+                    <li><p>both core in a broadcast manner by setting the eventInfo flag to
+                            kEventInfo_DualCore</p></li>
+                    <li><p>remote core by setting the eventInfo flag to kEventInfo_Remote</p></li>
+                    <li><p>local core by the eventInfo flag to kEventInfo_Local</p></li>
+                </ul>
+                <p>All supported message type can be used in conjunction with the copy flag set to
+                    1, in order to deep copy the message.</p>
+            </body>
+        </topic>
+        <topic id="param">
+            <title>param</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">void *param;</codeblock>
+                <p>The param for the callback (optional).</p>
+            </body>
+        </topic>
+    </topic>
+    <topic id="private-data">
+        <title>Private Data</title>
+        <body/>
+        <topic id="autostart">
+            <title>autoStart</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">int autoStart;</codeblock>
+                <p>The flag for automatically starting the algorithm.</p>
+                <p>If <codeph>autoStart</codeph> is 1, the Vision Algorithm Manager will
+                    automatically start requesting camera frames for this algorithm device after its
+                        <codeph>init</codeph> operator is executed.</p>
+            </body>
+        </topic>
+        <topic id="frames">
+            <title>frames</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">vision_frame_t frames[kVAlgoFrameID_Count];</codeblock>
+                <p>The three kinds of frames which are currently supported by the vision framework
+                    are <codeph>RGB</codeph>, <codeph>IR</codeph> and <codeph>Depth</codeph>
+                    images.</p>
+                <p>The vision algorithm device needs to specify information for each kind of frame,
+                    so that the framework will properly convert and pass only the frames which
+                    correspond to this algorithm device's requirement.</p>
+                <p>For example, older Solution's projects like <xref
+                    href="https://www.nxp.com/design/designs/nxp-edgeready-mcu-based-solution-for-3d-face-recognition:SLN-VIZNAS-IOT"
+                        format="html" scope="external">SLN-VIZN3D-IOT</xref> uses both 3D Depth and
+                    IR camera images to perform liveness detection and face recognition, while using
+                    RGB frames solely for use as user feedback to help with aligning a user's face,
+                    etc. Therefore, the algorithm device needs to ensure that it is receiving only
+                    the 3D and IR frames and not any RGB frames.</p>
+                <p>The definition of <codeph>vision_frame_t</codeph> is as shown below:</p>
+                <codeblock xml:space="preserve" outputclass="c">typedef struct _vision_frame
+{
+    /* is supported by the device for this type of frame */
+    /* Vision Algorithm Manager will only request the supported frame for this device */
+    int is_supported;
+
+    /* frame resolution */
+    int height;
+    int width;
+    int pitch;
+
+    /* rotate degree */
+    cw_rotate_degree_t rotate;
+    flip_mode_t flip;
+    /* swap byte per two bytes */
+    int swapByte;
+
+    /* pixel format */
+    pixel_format_t format;
+
+    /* the source pixel format of the requested frame */
+    pixel_format_t srcFormat;
+    void *data;
+} vision_frame_t;</codeblock>
+            </body>
+        </topic>
+    </topic>
+    <topic id="example">
+        <title>Example</title>
+        <body>
+            <p>Because only one Vision Algorithm device can be registered at a time per the design
+                of the framework, the project has one Vision Algorithm device
+                    implemented<sup>[2]</sup>. </p>
+            <codeblock xml:space="preserve"><sup>[2]</sup>This example is implemented using NXP's OasisLite face recognition algorithm,
+which is the core vision computing algorithm used in the all projects.</codeblock>
+            <p>This example is reproduced below:</p>
+            <codeblock xml:space="preserve" outputclass="c">static hal_valgo_status_t HAL_VisionAlgoDev_OasisLite_Init(vision_algo_dev_t *dev,
+                                                           valgo_dev_callback_t callback,
+                                                           void *param);
+static hal_valgo_status_t HAL_VisionAlgoDev_OasisLite_Deinit(vision_algo_dev_t *dev);
+static hal_valgo_status_t HAL_VisionAlgoDev_OasisLite_Run(const vision_algo_dev_t *dev, void *data);
+static hal_valgo_status_t HAL_VisionAlgoDev_OasisLite_InputNotify(const vision_algo_dev_t *receiver, void *data);
+
+/* vision algorithm device operators */
+const static vision_algo_dev_operator_t s_VisionAlgoDev_OasisLiteOps = {
+    .init        = HAL_VisionAlgoDev_OasisLite_Init,
+    .deinit      = HAL_VisionAlgoDev_OasisLite_Deinit,
+    .run         = HAL_VisionAlgoDev_OasisLite_Run,
+    .inputNotify = HAL_VisionAlgoDev_OasisLite_InputNotify,
+};
+
+/* vision algorithm device */
+static vision_algo_dev_t s_VisionAlgoDev_OasisLite3D = {
+    .id   = 0,
+    .name = "OASIS_3D",
+    .ops  = (vision_algo_dev_operator_t *)&amp;s_VisionAlgoDev_OasisLiteOps,
+    .cap  = {.param = NULL},
+};
+
+/* vision algorithm device Init function*/
+static hal_valgo_status_t HAL_VisionAlgoDev_OasisLite_Init(vision_algo_dev_t *dev,
+                                                           valgo_dev_callback_t callback,
+                                                           void *param)
+{
+    LOGI("++HAL_VisionAlgoDev_OasisLite_Init");
+    hal_valgo_status_t ret = kStatus_HAL_ValgoSuccess;
+
+    // init the device
+    memset(&amp;dev-&gt;cap, 0, sizeof(dev-&gt;cap));
+    dev-&gt;cap.callback = callback;
+
+    /* set parameters of the requested frames that this vision algorithm dev asks for*/
+    /* for example oasisLite algorithm asks for two kind of frames: one is IR, the other is Depth */
+    /* firstly set parameters of the requested IR frames */
+    dev-&gt;data.autoStart                             = 1;
+    dev-&gt;data.frames[kVAlgoFrameID_IR].height       = OASIS_FRAME_HEIGHT;
+    dev-&gt;data.frames[kVAlgoFrameID_IR].width        = OASIS_FRAME_WIDTH;
+    dev-&gt;data.frames[kVAlgoFrameID_IR].pitch        = OASIS_FRAME_WIDTH * 3;
+    dev-&gt;data.frames[kVAlgoFrameID_IR].is_supported = 1;
+    dev-&gt;data.frames[kVAlgoFrameID_IR].rotate       = kCWRotateDegree_0;
+    dev-&gt;data.frames[kVAlgoFrameID_IR].flip         = kFlipMode_None;
+    dev-&gt;data.frames[kVAlgoFrameID_IR].format    = kPixelFormat_BGR;
+    dev-&gt;data.frames[kVAlgoFrameID_IR].srcFormat = kPixelFormat_Gray16;
+    int oasis_lite_rgb_frame_aligned_size        = SDK_SIZEALIGN(OASIS_FRAME_HEIGHT * OASIS_FRAME_WIDTH * 3, 64);
+    dev-&gt;data.frames[kVAlgoFrameID_IR].data      = pvPortMalloc(oasis_lite_rgb_frame_aligned_size);
+
+    if (dev-&gt;data.frames[kVAlgoFrameID_IR].data == NULL)
+    {
+        OASIS_LOGE("[ERROR]: Unable to allocate memory for kVAlgoFrameID_IR.");
+        ret = kStatus_HAL_ValgoMallocError;
+        return ret;
+    }
+    /* secondly set parameters of the requested Depth frames */
+    dev-&gt;data.frames[kVAlgoFrameID_Depth].height       = OASIS_FRAME_HEIGHT;
+    dev-&gt;data.frames[kVAlgoFrameID_Depth].width        = OASIS_FRAME_WIDTH;
+    dev-&gt;data.frames[kVAlgoFrameID_Depth].pitch        = OASIS_FRAME_WIDTH * 2;
+    dev-&gt;data.frames[kVAlgoFrameID_Depth].is_supported = 1;
+    dev-&gt;data.frames[kVAlgoFrameID_Depth].rotate       = kCWRotateDegree_0;
+    dev-&gt;data.frames[kVAlgoFrameID_Depth].flip         = kFlipMode_None;
+
+    dev-&gt;data.frames[kVAlgoFrameID_Depth].format    = kPixelFormat_Depth16;
+    dev-&gt;data.frames[kVAlgoFrameID_Depth].srcFormat = kPixelFormat_Depth16;
+    int oasis_lite_depth_frame_aligned_size         = SDK_SIZEALIGN(OASIS_FRAME_HEIGHT * OASIS_FRAME_WIDTH * 2, 64);
+    dev-&gt;data.frames[kVAlgoFrameID_Depth].data      = pvPortMalloc(oasis_lite_depth_frame_aligned_size);
+
+    if (dev-&gt;data.frames[kVAlgoFrameID_Depth].data == NULL)
+    {
+        OASIS_LOGE("Unable to allocate memory for kVAlgoFrameID_IR");
+        ret = kStatus_HAL_ValgoMallocError;
+        return ret;
+    }
+
+    /* do private Algorithm Init here */
+    ...
+
+    LOGI("--HAL_VisionAlgoDev_OasisLite_Init");
+    return ret;
+}
+
+/* vision algorithm device DeInit function*/
+static hal_valgo_status_t HAL_VisionAlgoDev_OasisLite_Deinit(vision_algo_dev_t *dev)
+{
+    hal_valgo_status_t ret = kStatus_HAL_ValgoSuccess;
+    LOGI("++HAL_VisionAlgoDev_OasisLite_Deinit");
+
+    /* release resource here */
+    ...
+
+    LOGI("--HAL_VisionAlgoDev_OasisLite_Deinit");
+    return ret;
+}
+
+/* vision algorithm device inference run function*/
+static hal_valgo_status_t HAL_VisionAlgoDev_OasisLite_Run(const vision_algo_dev_t *dev, void *data)
+{
+    hal_valgo_status_t ret = kStatus_HAL_ValgoSuccess;
+    OASIS_LOGI("++HAL_VisionAlgoDev_OasisLite_Run");
+
+    vision_algo_result_t result;
+    /* do inference run, derive meaningful information from the current frame data in dev private data */
+    /* for example, oasisLite will inference according to two kinds of input frames:
+       void* frame1 = dev-&gt;data.frames[kVAlgoFrameID_IR].data
+       void* frame2 = dev-&gt;data.frames[kVAlgoFrameID_Depth].data
+       result = oasisLite_run(frame1, frame2, ......);
+    */
+    ...
+
+    /* execute algorithm manager callback to inform algorithm manager the result */
+    if (dev != NULL &amp;&amp; result != NULL &amp;&amp; dev-&gt;cap.callback != NULL)
+    {
+            valgo_event_t valgo_event = {
+                .eventId = kVAlgoEvent_RequestFrame,
+                .eventInfo = kEventInfo_DualCore/Remote/Local,
+                .data = data,
+                .size = 0,
+                .copy = 0};
+
+        dev-&gt;cap.callback(dev-&gt;id, kVAlgoEvent_VisionResultUpdate, result, sizeof(vision_algo_result_t), 0);
+    }
+
+    OASIS_LOGI("--HAL_VisionAlgoDev_OasisLite_Run");
+    return ret;
+}
+
+/* vision algorithm device InputNotify function*/
+static hal_valgo_status_t HAL_VisionAlgoDev_OasisLite_InputNotify(const vision_algo_dev_t *receiver, void *data)
+{
+    hal_valgo_status_t ret = kStatus_HAL_ValgoSuccess;
+    OASIS_LOGI("++HAL_VisionAlgoDev_OasisLite_InputNotify");
+    event_base_t eventBase = *(event_base_t *)data;
+
+    /* do proess according to different input notify event */
+    ...
+
+    LOGI("--HAL_VisionAlgoDev_OasisLite_InputNotify");
+    return ret;
+}
+
+/* register vision algorithm device to vision algorithm manager */
+int HAL_VisionAlgoDev_OasisLite3D_Register()
+{
+    int error = 0;
+    LOGD("HAL_VisionAlgoDev_OasisLite3D_Register");
+    error = FWK_VisionAlgoManager_DeviceRegister(&amp;s_VisionAlgoDev_OasisLite3D);
+
+    return error;
+}</codeblock>
+        </body>
+    </topic>
+</topic>

@@ -1,0 +1,112 @@
+_hp_bg21_1280x720.data = (base + 0);
+_iot_page_1280x720.data = (base + 2764800);
+_ylight_alpha_254x211.data = (base + 5529600);
+_blightt_alpha_254x211.data = (base + 5690432);
+_glightt_alpha_254x211.data = (base + 5851264);
+_thermometer_alpha_100x65.data = (base + 6012096);
+_thermometer_alpha_81x65.data = (base + 6031616);
+_airquality_alpha_116x88.data = (base + 6047424);
+_lockscreen_alpha_466x474.data = (base + 6078080);
+_img_heart_alpha_100x65.data = (base + 6740736);
+_img_ekg_alpha_100x65.data = (base + 6760256);
+_icn_water_alpha_100x100.data = (base + 6779776);
+_btn1_alpha_224x99.data = (base + 6809792);
+_arrow2_alpha_100x100.data = (base + 6876352);
+_stop4_alpha_102x104.data = (base + 6906368);
+_btn1_alpha_194x91.data = (base + 6938240);
+_kidspage_1280x720.data = (base + 6991232);
+_bg1_1280x720.data = (base + 9756032);
+_btn4_alpha_299x177.data = (base + 12520832);
+_btn4_alpha_469x278.data = (base + 12679616);
+_btn4_alpha_296x174.data = (base + 13070784);
+s_Icons[process_bar_240x14] = (base + 0);
+s_Prompts[beep].data = (base + 0);
+s_Prompts[beep].len = 981;
+s_Prompts[buzz].data = (base + 1024);
+s_Prompts[buzz].len = 65760;
+s_Prompts[demo1].data = (base + 66816);
+s_Prompts[demo1].len = 127485;
+s_Prompts[demo10].data = (base + 194304);
+s_Prompts[demo10].len = 202365;
+s_Prompts[demo11].data = (base + 396672);
+s_Prompts[demo11].len = 67005;
+s_Prompts[demo12].data = (base + 463680);
+s_Prompts[demo12].len = 67005;
+s_Prompts[demo13].data = (base + 530688);
+s_Prompts[demo13].len = 157725;
+s_Prompts[demo14].data = (base + 688448);
+s_Prompts[demo14].len = 106605;
+s_Prompts[demo15].data = (base + 795072);
+s_Prompts[demo15].len = 77085;
+s_Prompts[demo16].data = (base + 872192);
+s_Prompts[demo16].len = 164925;
+s_Prompts[demo17].data = (base + 1037120);
+s_Prompts[demo17].len = 115965;
+s_Prompts[demo2].data = (base + 1153088);
+s_Prompts[demo2].len = 208125;
+s_Prompts[demo3].data = (base + 1361216);
+s_Prompts[demo3].len = 178605;
+s_Prompts[demo4].data = (base + 1539840);
+s_Prompts[demo4].len = 146205;
+s_Prompts[demo5].data = (base + 1686080);
+s_Prompts[demo5].len = 172125;
+s_Prompts[demo6].data = (base + 1858240);
+s_Prompts[demo6].len = 89325;
+s_Prompts[demo7].data = (base + 1947584);
+s_Prompts[demo7].len = 132525;
+s_Prompts[demo8].data = (base + 2080128);
+s_Prompts[demo8].len = 154845;
+s_Prompts[demo9].data = (base + 2235008);
+s_Prompts[demo9].len = 162765;
+s_Prompts[draw].data = (base + 2397824);
+s_Prompts[draw].len = 35040;
+s_Prompts[good morning].data = (base + 2432896);
+s_Prompts[good morning].len = 89325;
+s_Prompts[good night].data = (base + 2522240);
+s_Prompts[good night].len = 65565;
+s_Prompts[how are you].data = (base + 2587840);
+s_Prompts[how are you].len = 57645;
+s_Prompts[intro song].data = (base + 2645504);
+s_Prompts[intro song].len = 161332;
+s_Prompts[introduce yourself].data = (base + 2806848);
+s_Prompts[introduce yourself].len = 190125;
+s_Prompts[lose].data = (base + 2996992);
+s_Prompts[lose].len = 137090;
+s_Prompts[nice to meet you too].data = (base + 3134144);
+s_Prompts[nice to meet you too].len = 41085;
+s_Prompts[robot greet].data = (base + 3175232);
+s_Prompts[robot greet].len = 88605;
+s_Prompts[tell me a joke].data = (base + 3263872);
+s_Prompts[tell me a joke].len = 63405;
+s_Prompts[turning off lights].data = (base + 3327296);
+s_Prompts[turning off lights].len = 25965;
+s_Prompts[win].data = (base + 3353280);
+s_Prompts[win].len = 161332;
+s_Prompts[turning on lights].data = (base + 3514624);
+s_Prompts[turning on lights].len = 25965;
+s_Prompts[twinkle11].data = (base + 3540608);
+s_Prompts[twinkle11].len = 80669;
+s_Prompts[twinkle22].data = (base + 3621312);
+s_Prompts[twinkle22].len = 130688;
+s_Models[VIT_Model_Main_Menu_en].data = (base + 0);
+s_Models[VIT_Model_Main_Menu_en].len = 364348;
+s_Models[VIT_Model_Thermostat_en].data = (base + 364352);
+s_Models[VIT_Model_Thermostat_en].len = 361088;
+s_Models[VIT_Model_Security_en].data = (base + 725440);
+s_Models[VIT_Model_Security_en].len = 360420;
+s_Models[VIT_Model_Audio_Player_en].data = (base + 1085888);
+s_Models[VIT_Model_Audio_Player_en].len = 361664;
+
+Images Total: 0xc9cd80, 13225344
+
+Icons Total: 0x001a40, 6720
+
+Prompts Total: 0x394040, 3752000
+
+Models Total: 0x161680, 1447552
+
+Total(Images, Icons): 0xc9e7c0, 13232064
+
+Total(Images, Icons, Prompts): 0x1032800, 16984064
+
+Total(Images, Icons, Prompts, Models): 0x1193e80, 18431616

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map id="map_00733584-2b2d-49ae-850d-cfb60a101047" rev="0.1" xml:lang="en-US">
+	<title/>
+	<topicmeta>
+		<shortdesc outputclass="subtitle">SW Developer Guide for SLN-TLHMI-IOT</shortdesc>
+		<author>${octavia.dorobantu@nxp.com}</author>
+		<publisher>NXP B.V.</publisher>
+		<critdates>
+			<created date="2022-08-30" />
+			<revised modified="2022-08-30" />
+		</critdates>
+		<permissions view="public"/>   
+		<metadata>
+			<category>Information Product</category>
+			<othermeta name="nxp-type" content="report"/>
+			<othermeta name="releasestate" content="draft"/>
+			<othermeta name="doc-identifier" content=""/>
+		</metadata>
+	</topicmeta>
+	<topicref href="introduction.dita"/>
+	<topicref href="setup_and_install.dita"/>
+	<topicref href="bootloader/security/introduction_ivaldi.dita">
+		<topicref href="bootloader/security/ivaldi.dita"/>
+	</topicref>
+	<topicref href="bootloader/bootloader.dita">
+		<topicref href="bootloader/introduction.dita"/>
+		<topicref href="bootloader/boot_modes/overview.dita"/>
+		<topicref href="bootloader/boot_modes/normal_boot.dita"/>
+		<topicref href="bootloader/boot_modes/mass_storage_device_updates.dita"/>
+		<topicref href="bootloader/security/image_verification.dita"/>
+		<topicref href="bootloader/application_banks.dita"/>
+	</topicref>
+	<topicref href="over_the_air_update.dita">
+		<topicref href="over_the_air.dita"/>
+	</topicref>
+	<topicref href="framework/framework.dita">
+		<topicref href="framework/introduction.dita"/>
+		<topicref href="framework/naming_conventions.dita"/>
+		<topicref href="framework/device_managers/device_managers.dita">
+			<topicref href="framework/device_managers/overview.dita"/>
+			<topicref href="framework/device_managers/input_manager.dita"/>
+			<topicref href="framework/device_managers/output_manager.dita"/>
+			<topicref href="framework/device_managers/camera_manager.dita"/>
+			<topicref href="framework/device_managers/display_manager.dita"/>
+			<topicref href="framework/device_managers/vision_algo_manager.dita"/>
+			<topicref href="framework/device_managers/voice_algo_manager.dita"/>
+			<topicref href="framework/device_managers/lpm_manager.dita"/>
+			<topicref href="framework/device_managers/audio_processing.dita"/>
+			<topicref href="framework/device_managers/flash_manager.dita"/>
+			<topicref href="framework/device_managers/multicore_manager.dita"/>
+		</topicref>
+		<topicref href="framework/hal_devices/hal_devices.dita">
+			<topicref href="framework/hal_devices/overview.dita"/>
+			<topicref href="framework/hal_devices/input.dita"/>
+			<topicref href="framework/hal_devices/output.dita"/>
+			<topicref href="framework/hal_devices/camera.dita"/>
+			<topicref href="framework/hal_devices/display.dita"/>
+			<topicref href="framework/hal_devices/vision_algo.dita"/>
+			<topicref href="framework/hal_devices/voice_algo.dita"/>
+			<topicref href="framework/hal_devices/audio_processing.dita"/>
+			<topicref href="framework/hal_devices/flash.dita"/>
+			<topicref href="framework/hal_devices/multicore.dita"/>
+		</topicref>
+		<topicref href="framework/events/events.dita">
+			<topicref href="framework/events/overview.dita"/>
+			<topicref href="framework/events/event_handlers.dita"/>
+		</topicref>
+	</topicref>
+	<topicref href="coffee_machine/coffee_machine.dita">
+		<topicref href="coffee_machine/introduction.dita"/>
+		<topicref href="coffee_machine/coffee_machine_cm7.dita"/>
+		<topicref href="coffee_machine/coffee_machine_cm4.dita"/>
+	</topicref>
+	<topicref href="elevator/elevator.dita">
+		<topicref href="elevator/introduction.dita"/>
+		<topicref href="elevator/elevator_cm7.dita"/>
+		<topicref href="elevator/elevator_cm4.dita"/>
+	</topicref>
+	<topicref href="customization.dita">
+		<topicref href="how_to_develop_user_app_intr.dita">
+			<topicref href="how_to_develop_user_app.dita"/>
+		</topicref>
+		<topicref href="application_resource_build.dita">
+			<topicref href="resource_build.dita"/>
+		</topicref>
+		<topicref href="voice/cyberon_dsmt.dita">
+			<topicref href="voice/dsmt_instructions.dita"/>
+		</topicref>
+	</topicref>
+	<topicref href="vit_speech_instructions.dita">
+		<topicref href="voice/vit_instructions.dita"/>
+	</topicref>
+</map>

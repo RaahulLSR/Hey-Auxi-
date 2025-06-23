@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="camera-devices">
+    <title>Camera Devices</title>
+    <body>
+        <p>The <codeph>Camera</codeph> HAL device provides an abstraction to represent many
+            different camera devices which may have different resolutions, color formats, and even
+            connection interfaces.</p>
+        <p>For example, the same GC0308 RGB camera can connect with CSI or via a FlexIO
+            interface.</p>
+        <codeblock xml:space="preserve">A camera HAL device represents a camera sensor + interface,
+meaning a separate device driver is required for the same camera sensor using different interfaces.</codeblock>
+        <p>As with other device types, camera devices are controlled via their manager. The Camera
+            Manager is responsible for managing all registered camera HAL devices, and invoking
+            camera device operators (<codeph>init</codeph>, <codeph>start</codeph>,
+                <codeph>dequeue</codeph>, etc.) as necessary. Additionally, the Camera Manager
+            allows for multiple camera devices to be registered and operate at once.</p>
+    </body>
+    <topic id="device-definition">
+        <title>Device Definition</title>
+        <body>
+            <p>The HAL device definition for <codeph>Camera</codeph> devices can be found under
+                "framework/hal_api/hal_camera_dev.h" and is reproduced below:</p>
+            <codeblock xml:space="preserve" outputclass="c">typedef struct _camera_dev camera_dev_t;
+/*! @brief Attributes of a camera device. */
+struct _camera_dev
+{
+    /* unique id which is assigned by camera manager during registration */
+    int id;
+    /* state in which the device is found */
+    hal_device_state_t state;
+    /* name of the device */
+    char name[DEVICE_NAME_MAX_LENGTH];
+
+    /* operations */
+    const camera_dev_operator_t *ops;
+    /* static configs */
+    camera_dev_static_config_t config;
+    /* private capability */
+    camera_dev_private_capability_t cap;
+};</codeblock>
+            <p>The device <codeph>operators</codeph> associated with camera HAL devices are as shown
+                below:</p>
+            <codeblock xml:space="preserve" outputclass="c">/*! @brief Operation that needs to be implemented by a camera device */
+typedef struct _camera_dev_operator
+{
+    /* initialize the dev */
+    hal_camera_status_t (*init)(camera_dev_t *dev, int width, int height, camera_dev_callback_t callback, void *param);
+    /* deinitialize the dev */
+    hal_camera_status_t (*deinit)(camera_dev_t *dev);
+    /* start the dev */
+    hal_camera_status_t (*start)(const camera_dev_t *dev);
+    /* enqueue a buffer to the dev */
+    hal_camera_status_t (*enqueue)(const camera_dev_t *dev, void *data);
+    /* dequeue a buffer from the dev */
+    hal_camera_status_t (*dequeue)(const camera_dev_t *dev, void **data, pixel_format_t *format);
+    /* postProcess a buffer from the dev */
+    /*
+     * Only do the minimum determination(data point and the format) of the frame in the dequeue.
+     *
+     * And split the CPU based post process(IR/Depth/... processing) to postProcess as they will eat CPU
+     * which is critical for the whole system as Camera Manager is running with the highest priority.
+     *
+     * Camera Manager will do the postProcess if there is a consumer of this frame.
+     *
+     * Note:
+     * Camera Manager will call multiple times of the posProcess of the same frame determinted by dequeue.
+     * The HAL driver needs to guarantee the postProcess only do once for the first call.
+     *
+     */
+    hal_camera_status_t (*postProcess)(const camera_dev_t *dev, void **data, pixel_format_t *format);
+    /* input notify */
+    hal_camera_status_t (*inputNotify)(const camera_dev_t *dev, void *data);
+} camera_dev_operator_t;</codeblock>
+            <p>The <codeph>static configs</codeph> associated with camera HAL devices are as shown
+                below:</p>
+            <codeblock xml:space="preserve" outputclass="c">/*! @brief Structure that characterize the camera device. */
+typedef struct
+{
+    /* buffer resolution */
+    int height;
+    int width;
+    int pitch;
+    /* active rect */
+    int left;
+    int top;
+    int right;
+    int bottom;
+    /* rotate degree */
+    cw_rotate_degree_t rotate;
+    /* flip */
+    flip_mode_t flip;
+    /* swap byte per two bytes */
+    int swapByte;
+} camera_dev_static_config_t;</codeblock>
+            <p>The device <codeph>capabilities</codeph> associated with camera HAL devices are as
+                shown below:</p>
+            <codeblock xml:space="preserve" outputclass="c">/*! @brief Structure that capability of the camera device. */
+typedef struct
+{
+    /* callback */
+    camera_dev_callback_t callback;
+    /* param for the callback */
+    void *param;
+} camera_dev_private_capability_t;</codeblock>
+        </body>
+    </topic>
+    <topic id="operators">
+        <title>Operators</title>
+        <body>
+            <p>Operators are functions which "operate" on a HAL device itself. Operators are akin to
+                "public methods" in object oriented-languages, and are used by the Camera Manager to
+                setup, start, etc. each of its registered camera devices.</p>
+            <p>For more information about operators, see <codeph>Operators</codeph>.</p>
+        </body>
+        <topic id="init">
+            <title>Init</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">hal_camera_status_t (*init)(camera_dev_t *dev,
+                            int width,
+                            int height,
+                            camera_dev_callback_t callback,
+                            void *param);</codeblock>
+                <p>Initialize the camera device.</p>
+                <p><codeph>Init</codeph> should initialize any hardware resources the camera device
+                    requires (I/O ports, IRQs, etc.), turn on the hardware, and perform any other
+                    setup the device requires.</p>
+                <p>This operator will be called by the Camera Manager when the Camera Manager task
+                    first starts.</p>
+            </body>
+        </topic>
+        <topic id="deinit">
+            <title>Deinit</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">hal_camera_status_t (*deinit)(camera_dev_t *dev);</codeblock>
+                <p>"Deinitialize" the camera device.</p>
+                <p><codeph>DeInit</codeph> should release any hardware resources the camera device
+                    uses (I/O ports, IRQs, etc.), turn off the hardware, and perform any other
+                    shutdown the device requires.</p>
+                <p>This operator will be called by the Camera Manager when the Camera Manager task
+                        ends<sup>[1]</sup>.</p>
+                <codeblock xml:space="preserve"><sup>[1]</sup>The `DeInit` function generally will not be called under normal operation.</codeblock>
+            </body>
+        </topic>
+        <topic id="start">
+            <title>Start</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">hal_camera_status_t (*start)(const camera_dev_t *dev);</codeblock>
+                <p>Start the camera device.</p>
+                <p>The <codeph>Start</codeph> operator will be called in the initialization stage of
+                    the Camera Manager's task after the call to the <codeph>Init</codeph> operator.
+                    The startup of the camera sensor and interface should be implemented in this
+                    operator. This includes, for example, starting the interface and enabling the
+                    IRQ of the DMA used by the interface.</p>
+            </body>
+        </topic>
+        <topic id="enqueue">
+            <title>Enqueue</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">hal_camera_status_t (*enqueue)(const camera_dev_t *dev,
+                                    void *data);</codeblock>
+                <p>Enqueue a single frame.</p>
+                <p>The <codeph>Enqueue</codeph> operator is called by the Camera Manager to submit
+                    an empty buffer into the camera device's buffer queue. Once the submitted buffer
+                    is filled by the camera device, the camera device should call the Camera
+                    Manager's callback function and pass a <codeph>kCameraEvent_SendFrame</codeph>
+                    event.</p>
+            </body>
+        </topic>
+        <topic id="dequeue">
+            <title>Dequeue</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">hal_camera_status_t (*enqueue)(const camera_dev_t *dev,
+                                    void *data);</codeblock>
+                <p>Dequeue a single frame.</p>
+                <p>The <codeph>Dequeue</codeph> operator will be called by the Camera Manager to get
+                    a camera frame from the device. The frame address and the format will be
+                    determined by this operator.</p>
+            </body>
+        </topic>
+        <topic id="postprocess">
+            <title>PostProcess</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">hal_camera_status_t (*postProcess)(const camera_dev_t *dev,
+                                    void **data,
+                                    pixel_format_t *format);</codeblock>
+                <p>Handles the post-processing of the camera frame.</p>
+                <p>The <codeph>PostProcess</codeph> operator is called by the Camera Manager to
+                    perform any required post-processing of the camera frame. For example, if a
+                    frame needs to be converted from one format to another in some way before it is
+                    useable by the display and/or a vision algo device, this would take place in the
+                        <codeph>PostProcess</codeph> operator.</p>
+            </body>
+        </topic>
+        <topic id="inputnotify">
+            <title>InputNotify</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">hal_camera_status_t (*inputNotify)(const camera_dev_t *dev, void *data);</codeblock>
+                <p>Handle input events.</p>
+                <p>The <codeph>InputNotify</codeph> operator is called by the Camera Manager
+                    whenever a <codeph>kFWKMessageID_InputNotify</codeph> message is received by and
+                    forwarded from the Camera Manager's message queue.</p>
+                <p>For more information regarding events and event handling, see <xref
+                        href="../events/overview.md" format="markdown">Events</xref>.</p>
+            </body>
+        </topic>
+    </topic>
+    <topic id="static-configs">
+        <title>Static Configs</title>
+        <body>
+            <p>Static configs, unlike regular, dynamic <codeph>configs</codeph>, are set at compile
+                time and cannot be changed on-the-fly.</p>
+        </body>
+        <topic id="height">
+            <title>height</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">int height;</codeblock>
+                <p>The height of the camera buffer.</p>
+            </body>
+        </topic>
+        <topic id="width">
+            <title>width</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">int width;</codeblock>
+                <p>The width of the camera buffer.</p>
+            </body>
+        </topic>
+        <topic id="pitch">
+            <title>pitch</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">int pitch;</codeblock>
+                <p>The total number of bytes in a single row of a camera frame.</p>
+            </body>
+        </topic>
+        <topic id="left">
+            <title>left</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">int left;</codeblock>
+                <p>The left edge of the active area in a camera buffer.</p>
+            </body>
+        </topic>
+        <topic id="top">
+            <title>top</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">int top;</codeblock>
+                <p>The top edge of the active area in a camera buffer.</p>
+            </body>
+        </topic>
+        <topic id="right">
+            <title>right</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">int right;</codeblock>
+                <p>The right edge of the active area in a camera buffer.</p>
+            </body>
+        </topic>
+        <topic id="bottom">
+            <title>bottom</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">int bottom;</codeblock>
+                <p>The bottom edge of the active area in a camera buffer.</p>
+            </body>
+        </topic>
+        <topic id="rotate">
+            <title>rotate</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">typedef enum _cw_rotate_degree
+{
+    kCWRotateDegree_0 = 0,
+    kCWRotateDegree_90,
+    kCWRotateDegree_180,
+    kCWRotateDegree_270
+} cw_rotate_degree_t;</codeblock>
+                <codeblock xml:space="preserve" outputclass="c">cw_rotate_degree_t rotate;</codeblock>
+                <p>The rotate degree of the camera sensor.</p>
+            </body>
+        </topic>
+        <topic id="flip">
+            <title>flip</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">typedef enum _flip_mode
+{
+    kFlipMode_None = 0,
+    kFlipMode_Horizontal,
+    kFlipMode_Vertical,
+    kFlipMode_Both
+} flip_mode_t;</codeblock>
+                <codeblock xml:space="preserve" outputclass="c">flip_mode_t flip;</codeblock>
+                <p>Determines whether to flip the frame while processing the frame for the algorithm
+                    and display.</p>
+            </body>
+        </topic>
+        <topic id="swapbyte">
+            <title>swapByte</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">int swapByte;</codeblock>
+                <p>Determines whether to enable swapping bytes while processing a frame for
+                    algorithm and display devices.</p>
+            </body>
+        </topic>
+    </topic>
+    <topic id="capabilities">
+        <title>Capabilities</title>
+        <body>
+            <codeblock xml:space="preserve" outputclass="c">typedef struct
+{
+    /* callback */
+    camera_dev_callback_t callback;
+    /* param for the callback */
+    void *param;
+} camera_dev_private_capability_t;</codeblock>
+            <p>The <codeph>capabilities</codeph> struct is primarily used for storing a callback to
+                communicate information from the device back to the Camera Manager. This callback
+                function is typically installed via a device's <codeph>init</codeph> operator.</p>
+        </body>
+        <topic id="callback">
+            <title>callback</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+* @brief Callback function to notify Camera Manager that one frame is dequeued
+* @param dev Device structure of the camera device calling this function
+* @param event id of the event that took place
+* @param param Parameters
+* @param fromISR True if this operation takes place in an irq, 0 otherwise
+* @return 0 if the operation was successfully
+*/
+typedef int (*camera_dev_callback_t)(const camera_dev_t *dev,
+                                camera_event_t event,
+                                void *param,
+                                uint8_t fromISR);</codeblock>
+                <codeblock xml:space="preserve" outputclass="c">camera_dev_callback_t callback;</codeblock>
+                <p>Callback to the Camera Manager.</p>
+                <p>The HAL device invokes this callback to notify the Camera Manager of specific
+                    events like "frame dequeued."</p>
+                <p>The Camera Manager will provide this callback to the device when the
+                        <codeph>init</codeph> operator is called. As a result, the HAL device should
+                    make sure to store the callback in the <codeph>init</codeph> operator's
+                    implementation.</p>
+                <codeblock xml:space="preserve" outputclass="c">static hal_camera_status_t HAL_CameraDev_ExampleDev_Init(
+    camera_dev_t *dev, int width, int height, camera_dev_callback_t callback, void *param)
+{
+    hal_camera_status_t ret = kStatus_HAL_CameraSuccess;
+
+    /* PERFORM INIT FUNCTIONALITY HERE */
+
+    ...
+
+    /* Installing callback function from manager... */
+    dev-&gt;cap.callback  = callback;
+
+    return ret;
+}</codeblock>
+            </body>
+        </topic>
+        <topic id="param">
+            <title>param</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">void *param;</codeblock>
+                <p>The parameter of the callback for <codeph>kCameraEvent_SendFrame</codeph> event.
+                    The Camera Manager will provide the parameter while calling the
+                        <codeph>Init</codeph> operator, so this param should be stored in the HAL
+                    device's struct as part of the implementation of the <codeph>Init</codeph>
+                    operator.</p>
+                <codeblock xml:space="preserve">This param should be provided when calling the [`Callback`](#callback) function.</codeblock>
+            </body>
+        </topic>
+    </topic>
+    <topic id="example">
+        <title>Example</title>
+        <body>
+            <p>The project has several camera devices implemented for use as-is or for use as
+                reference for implementing new camera devices. Source files for these camera HAL
+                devices can be found under "framework/hal/camera".</p>
+            <p>Below is an example of the GC0308 RGB FlexIO camera HAL device driver
+                "framework/hal/camera/hal_camera_flexio_gc0308.c".</p>
+            <codeblock xml:space="preserve" outputclass="c">hal_camera_status_t HAL_CameraDev_FlexioGc0308_Init(
+    camera_dev_t *dev, int width, int height, camera_dev_callback_t callback, void *param);
+static hal_camera_status_t HAL_CameraDev_FlexioGc0308_Deinit(camera_dev_t *dev);
+static hal_camera_status_t HAL_CameraDev_FlexioGc0308_Start(const camera_dev_t *dev);
+static hal_camera_status_t HAL_CameraDev_FlexioGc0308_Enqueue(const camera_dev_t *dev, void *data);
+static hal_camera_status_t HAL_CameraDev_FlexioGc0308_Dequeue(const camera_dev_t *dev,
+                                                              void **data,
+                                                              pixel_format_t *format);
+static int HAL_CameraDev_FlexioGc0308_Notify(const camera_dev_t *dev, void *data);
+
+/* The operators of the FlexioGc0308 Camera HAL Device */
+const static camera_dev_operator_t s_CameraDev_FlexioGc0308Ops = {
+    .init        = HAL_CameraDev_FlexioGc0308_Init,
+    .deinit      = HAL_CameraDev_FlexioGc0308_Deinit,
+    .start       = HAL_CameraDev_FlexioGc0308_Start,
+    .enqueue     = HAL_CameraDev_FlexioGc0308_Enqueue,
+    .dequeue     = HAL_CameraDev_FlexioGc0308_Dequeue,
+    .inputNotify = HAL_CameraDev_FlexioGc0308_Notify,
+};
+
+/* FlexioGc0308 Camera HAL Device */
+static camera_dev_t s_CameraDev_FlexioGc0308 = {
+    .id   = 0,
+    .name = CAMERA_NAME,
+    .ops  = &amp;s_CameraDev_FlexioGc0308Ops,
+    .cap =
+        {
+            .callback = NULL,
+            .param    = NULL,
+        },
+};
+
+hal_camera_status_t HAL_CameraDev_FlexioGc0308_Init(
+    camera_dev_t *dev, int width, int height, camera_dev_callback_t callback, void *param)
+{
+    hal_camera_status_t ret = kStatus_HAL_CameraSuccess;
+    LOGD("camera_dev_flexio_gc0308_init");
+
+    /* store the callback and param for late using*/
+    dev-&gt;cap.callback  = callback;
+    dev-&gt;cap.param     = param;
+
+    /* init the low level camera sensor and interface */
+
+    return ret;
+}
+
+static hal_camera_status_t HAL_CameraDev_FlexioGc0308_Deinit(camera_dev_t *dev)
+{
+    hal_camera_status_t ret = kStatus_HAL_CameraSuccess;
+    /* Currently do nothing for the Deinit as we didn't support the runtime de-registraion of the device */
+    return ret;
+}
+
+static hal_camera_status_t HAL_CameraDev_FlexioGc0308_Start(const camera_dev_t *dev)
+{
+    hal_camera_status_t ret = kStatus_HAL_CameraSuccess;
+
+    /* start the low level camera sensor and interface */
+
+    return ret;
+}
+
+static hal_camera_status_t HAL_CameraDev_FlexioGc0308_Enqueue(const camera_dev_t *dev, void *data)
+{
+    hal_camera_status_t ret = kStatus_HAL_CameraSuccess;
+
+    /* submit one free buffer into the camera's buffer queue */
+
+    return ret;
+}
+
+static hal_camera_status_t HAL_CameraDev_FlexioGc0308_Dequeue(const camera_dev_t *dev,
+                                                              void **data,
+                                                              pixel_format_t *format)
+{
+    hal_camera_status_t ret = kStatus_HAL_CameraSuccess;
+
+    /* get the buffer from camera's buffer queue and determine the format of the frame */
+
+    return ret;
+}
+
+static int HAL_CameraDev_FlexioGc0308_Notify(const camera_dev_t *dev, void *data)
+{
+    int error              = 0;
+    event_base_t eventBase = *(event_base_t *)data;
+
+    /* handle the events which are interested in */
+    switch (eventBase.eventId)
+    {
+        default:
+            break;
+    }
+
+    return error;
+}
+</codeblock>
+        </body>
+    </topic>
+</topic>

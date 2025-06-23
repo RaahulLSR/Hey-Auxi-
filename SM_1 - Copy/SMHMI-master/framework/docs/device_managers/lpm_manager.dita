@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="low-power-device-manager">
+    <title>Low-Power device manager</title>
+    <body>
+        <p>The Low-Power device manager is unique among the managers because it does not have the
+            typical <codeph>Init</codeph> and <codeph>Start</codeph> functions that the other
+            managers do. Instead, the Low Power Manager has APIs to register a device (only one at a
+            time), configure how the board should enter deep sleep, enable sleep mode, and more.</p>
+        <codeblock xml:space="preserve">Due to the unique nature of low-power devices being an abstract "virtual" device,
+only one LPM device can be registered to the LPM manager at a time.
+However,
+there should be no need for more than one LPM device because other devices can configure the current low power mode states by using the Low Power Manager APIs.</codeblock>
+    </body>
+    <topic id="apis">
+        <title>APIs</title>
+        <body/>
+        <topic id="fwk-lpmmanager-deviceregister">
+            <title>FWK_LpmManager_DeviceRegister</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Register a low power mode device. Currently, only one low power mode device can be registered at a time.
+ * @param dev Pointer to a low power mode device structure
+ * @return int Return 0 if registration was successful
+ */
+int FWK_LpmManager_DeviceRegister(lpm_dev_t *dev);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-lpmmanager-registerrequesthandler">
+            <title>FWK_LpmManager_RegisterRequestHandler</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">int FWK_LpmManager_RegisterRequestHandler(hal_lpm_request_t *req);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-lpmmanager-unregisterrequesthandler">
+            <title>FWK_LpmManager_UnregisterRequestHandler</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">int FWK_LpmManager_UnregisterRequestHandler(hal_lpm_request_t *req);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-lpmmanager-runtimeget">
+            <title>FWK_LpmManager_RuntimeGet</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">int FWK_LpmManager_RuntimeGet(hal_lpm_request_t *req);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-lpmmanager-runtimeput">
+            <title>FWK_LpmManager_RuntimePut</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">int FWK_LpmManager_RuntimePut(hal_lpm_request_t *req);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-lpmmanager-runtimeset">
+            <title>FWK_LpmManager_RuntimeSet</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">int FWK_LpmManager_RuntimeSet(hal_lpm_request_t *req, int8_t count);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-lpmmanager-requeststatus">
+            <title>FWK_LpmManager_RequestStatus</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">int FWK_LpmManager_RequestStatus(unsigned int *totalUsageCount);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-lpmmanager-setsleepmode">
+            <title>FWK_LpmManager_SetSleepMode</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Configure the sleep mode to use when entering sleep
+ * @param sleepMode sleep mode to use when entering sleep. Examples include SNVS and other "lighter" sleep modes
+ * @return int Return 0 if successful
+ */
+int FWK_LpmManager_SetSleepMode(hal_lpm_mode_t sleepMode);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-lpmmanager-enablesleepmode">
+            <title>FWK_LpmManager_EnableSleepMode</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Configure sleep mode on/off status
+ * @param enable used to set sleep mode on/off; true is enable, false is disable
+ * @return int Return 0 if successful
+ */
+int FWK_LpmManager_EnableSleepMode(hal_lpm_manager_status_t enable);</codeblock>
+            </body>
+        </topic>
+    </topic>
+</topic>

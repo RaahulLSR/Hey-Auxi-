@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="automated-manufacturing-tools">
+    <title>Automated manufacturing tools</title>
+    <body>
+        <p>This section provides an overview of Ivaldi, prerequisites, platform configuration, and
+            open boot programming.</p>
+    </body>
+    <topic id="about-ivaldi">
+        <title>About Ivaldi</title>
+        <body>
+            <p>Ivaldi is a package that is responsible for manufacturing and reprogramming without
+                J-Link. It uses the serial downloader mode within the RT117H boot ROM to communicate
+                with an application called Flashloader that is programmed into RT117H. It then
+                communicates with a program called blhost that controls various parts of the chip
+                and flash. Ivaldi was created to focus on the build infrastructure of a customer’s
+                development and manufacturing cycle. Its primary focuses are:</p>
+            <ul>
+                <li><p>Factory programming and setting up a new device/product</p></li>
+                <li><p>Generating AWS IoT Devices</p></li>
+                <li><p>Creating certificate/key pairs for devices</p></li>
+                <li><p>Associating policies with devices</p></li>
+                <li><p>Signing images for OTA and HAB</p></li>
+                <li><p>Writing and Accessing OTP fuses</p></li>
+            </ul>
+            <p>The following section gives information about the general flashing of a device
+                without debugging tools.</p>
+            <codeblock xml:space="preserve">
+To use Ivaldi, put the board in Serial Download Mode. For doing that, move jumper J203, on top of the board into position “0”. For more infomation see [Hardware Guide for more info](https://www.nxp.com/mcu-smhmi).</codeblock>
+        </body>
+    </topic>
+    <topic id="requirements">
+        <title>Requirements</title>
+        <body>
+            <p>Ivaldi has the following requirements before usage:</p>
+            <ul>
+                <li><p>Migration Guide in the "over_the_air.md" file must be followed</p></li>
+                <li><p>OpenSSL</p></li>
+                <li><p>AWS CLI installed</p><ul>
+                        <li><p><xref
+                                    href="https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html"
+                                    format="html" scope="external"
+                                    >https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html</xref></p></li>
+                        <li><p><xref
+                                    href="https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html#cli-quick-configuration"
+                                    format="html" scope="external"
+                                    >https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html#cli-quick-configuration</xref></p></li>
+                    </ul></li>
+                <li><p>Python 3.6.x</p></li>
+                <li><p>Linux / Windows CMD / Ubuntu for Windows</p></li>
+                <li><p>README.md from ivaldi root folder must be followed</p></li>
+            </ul>
+        </body>
+    </topic>
+    <topic id="platform-configuration">
+        <title>Platform configuration</title>
+        <body>
+            <p>Ivaldi uses a platform configuration file
+                “Scripts/sln_platforms_config/sln_tlhmi_iot_config/board_config.py”. This file
+                describes:</p>
+            <ul>
+                <li><p>The names of the binaries (from Image_Binaries folder) which will be
+                        flashed:</p><ul>
+                        <li><p>BOOTLOADER_NAME</p></li>
+                        <li><p>DEMO1_NAME</p></li>
+                        <li><p>DEMO1_NAME_RESOURCES</p></li>
+                        <li><p>DEMO2_NAME</p></li>
+                        <li><p>DEMO2_NAME_RESOURCES</p></li>
+                    </ul></li>
+                <li><p>Flash configurations:</p><ul>
+                        <li><p>FLASH_TYPE</p></li>
+                        <li><p>FLASH_START_ADDR</p></li>
+                        <li><p>FLASH_SIZE</p></li>
+                    </ul></li>
+                <li><p>Flash Map</p><ul>
+                        <li><p>Binaries’ images addresses</p></li>
+                        <li><p>Filesystem starting address and size</p></li>
+                        <li><p>FICA table addresses</p></li>
+                    </ul></li>
+            </ul>
+            <p>To configure Ivaldi to use specific image binaries from Image_Binaries folder, update
+                “Scripts/sln_platforms_config/sln_tlhmi_iot_config/board_config.py” file.</p>
+            <codeblock xml:space="preserve">
+ANY CHANGES IN “Scripts/sln_platforms_config/sln_tlhmi_iot_config/board_config.py” (EXCEPT BINARIES’
+NAMES) WILL ALSO REQUIRE UPDATING THE EMBEDDED CODE AND CONFIGURATIONS.</codeblock>
+        </body>
+    </topic>
+    <topic id="open-boot-programming">
+        <title>Open Boot Programming</title>
+        <body>
+            <p>The Open Boot Programming tool is responsible for creating a device and programming
+                it with the correct images, certificates and artifacts. This method is a quick and
+                easy way of taking a device/product from the assembly line and getting it ready to
+                ship. It is also good practice to run the Open Boot Programming script before
+                enabling the security features to ensure that all images and artifacts are in
+                working order. The Open Boot Programming script must only be run when all the images
+                and artifacts are obtained. Before running the script, ensure that the following
+                files and folders exist in the “Image_Binaries” directory of Ivaldi root and that
+                all the files mentioned in the board_config.py exists. After the script was
+                executed, do not forget to exit the serial downloader mode by moving back the J203
+                jumper.</p>
+            <p>A directory "Scripts/sln_tlhmi_iot_open_boot" within the Ivaldi package contains the
+                “open_prog_full.py” script and a README. The README file contains build requirements
+                for each image before running the script. If the requirements are not fulfilled, it
+                could cause the boot failure.</p>
+            <p>To program the firmware and artifacts, execute the <codeph>open_prog_full.py</codeph>
+                script that performs the following actions:</p>
+            <ul>
+                <li><p>Communicate with the BootROM to program Flashloader</p></li>
+                <li><p>Create a device with</p><ul>
+                        <li><p>Certificate</p></li>
+                        <li><p>Private Key</p></li>
+                        <li><p>Policy Attached in the cloud</p></li>
+                    </ul></li>
+                <li><p>Erase the flash</p></li>
+                <li><p>Generate littlefs format filesystem, that will contain files specified in the
+                        littlefs_file_list.py</p></li>
+                <li><p>Programming the images</p><ul>
+                        <li><p>Bootloader</p></li>
+                        <li><p>demo1</p></li>
+                        <li><p>demo1_resources</p></li>
+                        <li><p>demo2</p></li>
+                        <li><p>demo2_resources</p></li>
+                        <li><p>Program the FICA</p></li>
+                        <li><p>Program the littlefs</p></li>
+                    </ul></li>
+            </ul>
+            <p>In the current open_prog_full.py python script, the littlefs is being generated to
+                contains all the files mentioned in littlefs_file_list.py. Four files are
+                expected:</p>
+            <ul>
+                <li><p>Root CA certificate</p></li>
+                <li><p>AppA sign certificate - validated by the CA certificate and used to sign all
+                        the images that are being written or send for update</p></li>
+                <li><p>AWS certificate - used to validate connection with AWS server</p></li>
+                <li><p>AWK public key - used to communicate with AWS MQTT server</p></li>
+            </ul>
+            <p>One drawback of the current littlefs implementation is that it does not support the
+                attributes. Used in the SLN_TLHMI_IOT project to generate encrypted files.</p>
+            <codeblock xml:space="preserve">OPEN PROGRAMMING SCRIPT ASSUMES THE POLICY IS CALLED `tlhmi_deployment`. UPDATE THE SCRIPT TO USE THE CORRECT POLICY NAME IN THE CUSTOMERS AWS ACCOUNT.</codeblock>
+        </body>
+    </topic>
+</topic>

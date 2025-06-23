@@ -1,0 +1,8 @@
+[submodule "framework"]
+	path = framework
+	url = ssh://git@bitbucket.sw.nxp.com/miss/sln_framework.git
+	branch = master
+[submodule "bootloader"]
+	path = bootloader
+	url = ssh://git@bitbucket.sw.nxp.com/miss/sln_bootloader.git
+	branch = sln_smart_tlhmi

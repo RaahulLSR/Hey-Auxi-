@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dita PUBLIC "-//OASIS//DTD DITA Composite//EN" "ditabase.dtd">
+<dita>
+    <topic id="getting-started-with-vit">
+        <title>Getting started with VIT</title>
+        <body>
+            <p>Smart HMI demos use DSMT as Audio Speech Recognition technology by default. To enable
+                VIT ASR in Smart HMI SDK demos, do the following code modifications:</p>
+            <ol>
+                <li><p>In cm7 board_define.h comment ENABLE_DSMT_ASR and uncomment ENABLE_VIT_ASR
+                        (path toward header: coffee_machine
+                        ../coffee_machine/cm7/board/board_define.h and elevator
+                        ../elevator/cm7/board/board_define.h</p></li>
+                <li><p>At the moment of this release, French is not supported on VIT. Hiding it from
+                        the available languages menu is done putting FRENCH_LANG_SUPPORTED define on
+                        0 in this file from both coffee_machine
+                        ../coffee_machine/cm4/custom/custom.h and elevator
+                        ../elevator/cm4/custom/custom.h.</p></li>
+                <li><p>After modifying the files, build the lvgl library, then build the cm7 project
+                        and flash it</p></li>
+            </ol>
+        </body>
+    </topic>
+    <topic id="barge-in-support-when-vit-is-enabled">
+        <title>Barge-in support when VIT is enabled</title>
+        <body>
+            <p>At the moment of this release, VIT is not compatible with the AFE which is integrated
+                into the Smart HMI SDK. As a consequence, barge-in is not available when VIT is
+                enabled. It should change in the future, as compatibility between VIT and Voice
+                Seeker is planned.</p>
+        </body>
+    </topic>
+    <topic id="obtaining-a-new-vit-model">
+        <title>Obtaining a new VIT model</title>
+        <body>
+            <p>To obtain a new model, submit a request at this address: https://vit.nxp.com/#/</p>
+            <p>To do this, you need an nxp.com account.</p>
+        </body>
+    </topic>
+    <topic id="integrating-a-new-vit-model">
+        <title>Integrating a new VIT model</title>
+        <body>
+            <p>Place the newly obtained model in the same folder as the currently existing models,
+                as shown in VIT models.</p>
+            <fig>
+                <image href="img/vit_models.png"/>
+
+            </fig>
+            <p>Other files that must be updated for VIT integration are the ones highlighted
+                below</p>
+            <fig>
+                <image href="img/update_files_for_vit_integration.png"/>
+
+            </fig>
+        </body>
+    </topic>
+    <topic id="multilanguage-support">
+        <title>Multilanguage support</title>
+        <body>
+            <p>VIT does not support listening for multiple wake words from different languages at
+                the same time, as it is the case with DSMT. Hence, you will be able to say only one
+                wake word at a time. To change to a different language, use the language menu from
+                the display</p>
+        </body>
+    </topic>
+    <topic id="additional-info-and-resources">
+        <title>Additional info and resources</title>
+        <body>
+            <p>For documentation and other resources see: <xref
+                    href="https://www.nxp.com/design/software/embedded-software/voice-intelligent-technology:VOICE-INTELLIGENT-TECHNOLOGY"
+                    format="html" scope="external">VIT page</xref></p>
+        </body>
+    </topic>
+</dita>

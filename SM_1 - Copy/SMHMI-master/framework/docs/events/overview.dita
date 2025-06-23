@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="overview">
+    <title>Overview</title>
+    <body>
+        <p>Events are a means by which information is communicated between different devices via
+            their managers.</p>
+    </body>
+    <topic id="event-triggers">
+        <title>Event triggers</title>
+        <body>
+            <p>Events can correspond to many different happenings during the runtime of the
+                application, and can include things like:</p>
+            <ul>
+                <li><p>Button pressed</p></li>
+                <li><p>Face detected</p></li>
+                <li><p>Shell command received</p></li>
+            </ul>
+            <p>When an event is triggered, the device that first received the event communicates
+                that event to its manager, which in turn notifys other managers designated to
+                receive the event.</p>
+            <p>For example, when a button is pressed, a flow similar to the following takes
+                place:</p>
+            <ol>
+                <li><p>The "Push Button" HAL device receives an interrupt corresponding to the
+                        button that was pressed.</p></li>
+                <li><p>Inside the HAL device's interrupt handler, the device associates an event
+                        with the button that was pressed.</p></li>
+                <li><p>The HAL device specifies which managers should receive the event.</p></li>
+                <li><p>The HAL device forwards the event to its manager.</p></li>
+            </ol>
+            <p>The code that corresponds to this scenario can be seen in the below excerpts from
+                "framework/hal/input/hal_input_push_buttons.c" and app source located in
+                "source/event_handlers" folder, respectively.</p>
+            <codeblock xml:space="preserve" outputclass="c">void _HAL_InputDev_IrqHandler(button_data_t *button, switch_press_type_t pressType)
+{
+    if (s_InputDev_PushButtons.cap.callback != NULL)
+    {
+        uint32_t receiverList;
+        if (APP_InputDev_PushButtons_SetEvent(button-&gt;buttonId, pressType, &amp;s_pEvent, &amp;receiverList) == kStatus_Success)
+        {
+            s_inputEvent.inputData = s_pEvent;
+            uint8_t fromISR        = __get_IPSR();
+            s_InputDev_PushButtons.cap.callback(&amp;s_InputDev_PushButtons, kInputEventID_Recv, receiverList,
+                                                &amp;s_inputEvent, 0, fromISR);
+        }
+        else
+        {
+            LOGE("No valid event associated with SW%d button %s press", button-&gt;buttonId,
+                 pressType == kSwitchPressType_Short ? "short" : "long");
+        }
+    }
+}</codeblock>
+            <codeblock xml:space="preserve">The "callback" function in the above code refers to an internal callback function inside the [Input Manager](../device_managers/input_manager.md)
+which relays input events to each of the managers specified in an event's `receiverList`.</codeblock>
+            <codeblock xml:space="preserve" outputclass="c">    switch (button)
+    {
+        case kSwitchID_1:
+            if (pressType == kSwitchPressType_Long)
+            {
+                LOGD("Long PRESS Detected.");
+                unsigned int totalUsageCount;
+                FWK_LpmManager_RequestStatus(&amp;totalUsageCount);
+                FWK_LpmManager_EnableSleepMode(kLPMManagerStatus_SleepEnable);
+            }
+            break;
+
+        case kSwitchID_2:
+            if ((pressType == kSwitchPressType_Short) || (pressType == kSwitchPressType_Long))
+            {
+                *receiverList                    = 1 &lt;&lt; kFWKTaskID_VisionAlgo;
+                s_FaceRecEvent.eventBase.eventId = kEventFaceRecID_DelUser;
+                s_FaceRecEvent.delFace.hasName   = false;
+                s_FaceRecEvent.delFace.hasID     = false;
+                *event                           = &amp;s_FaceRecEvent;
+            }
+            break;
+
+        case kSwitchID_3:
+            if ((pressType == kSwitchPressType_Short) || (pressType == kSwitchPressType_Long))
+            {
+                *receiverList                    = 1 &lt;&lt; kFWKTaskID_VisionAlgo;
+                s_FaceRecEvent.eventBase.eventId = kEventFaceRecID_AddUser;
+                s_FaceRecEvent.addFace.hasName   = false;
+                *event                           = &amp;s_FaceRecEvent;
+            }
+            break;
+
+        default:
+            ret = kStatus_Fail;
+            break;
+    }
+
+    return ret;</codeblock>
+        </body>
+    </topic>
+    <topic id="types-of-events">
+        <title>Types of events</title>
+        <body>
+            <p>Events can be used to communicate all sorts of information, but the two types of
+                events defined by default are <codeph>InferComplete</codeph> events and
+                    <codeph>InputNotify</codeph> events.</p>
+            <p>Both types of events represent different information being communicated to and by the
+                HAL devices.</p>
+        </body>
+        <topic id="infercomplete-events">
+            <title>InferComplete events</title>
+            <body>
+                <p>Inference events are used to indicate that a vision/voice algorithm HAL device
+                    has completed a stage in its inference pipeline.</p>
+                <codeblock xml:space="preserve">Currently, only output HAL devices can respond to `InferComplete` events.
+This is not true of `InputNotify` events.</codeblock>
+                <p>In the current application, it can refer to several things, including:</p>
+                <ul>
+                    <li><p>Face detected</p></li>
+                    <li><p>Face recognized</p></li>
+                    <li><p>Fake face detected</p></li>
+                </ul>
+                <p>Output HAL devices can respond to inference events by implementing an
+                        <codeph>inferComplete</codeph> method. When an "InferComplete" event is
+                    triggered, the output manager attempts to call the
+                        <codeph>inferComplete</codeph> event handler of each of its devices,
+                    (assuming the device has implemented an <codeph>inferComplete</codeph>
+                    function).</p>
+                <p>As part of the <codeph>inferComplete</codeph> function call, the output manager
+                    also communicates the HAL device from which the event originated, the ID of the
+                    event received, as well as any additional information related to the event that
+                    was generated.</p>
+                <p>For example, a "Face Recognized" event also includes the ID of the face being
+                    recognized. Below is an example of how the RGB LED HAL device responds to
+                    several different events.</p>
+                <codeblock xml:space="preserve" outputclass="c">static hal_output_status_t HAL_OutputDev_RgbLed_InferComplete(const output_dev_t *dev,
+                                                              output_algo_source_t source,
+                                                              void *inferResult)
+{
+    vision_algo_result_t *visionAlgoResult = (vision_algo_result_t *)inferResult;
+    hal_output_status_t error              = kStatus_HAL_OutputSuccess;
+
+    if (visionAlgoResult != NULL)
+    {
+        if (visionAlgoResult-&gt;id == kVisionAlgoID_OasisLite)
+        {
+            oasis_lite_result_t *result = &amp;(visionAlgoResult-&gt;oasisLite);
+            if (source == kOutputAlgoSource_Vision)
+            {
+                if ((result-&gt;face_recognized) &amp;&amp; (result-&gt;face_id &gt;= 0))
+                {
+                    RGB_LED_SET_COLOR(kRGBLedColor_Green);
+                }
+                else if (result-&gt;face_count)
+                {
+                    RGB_LED_SET_COLOR(kRGBLedColor_Red);
+                }
+                else
+                {
+                    RGB_LED_SET_COLOR(kRGBLedColor_Off);
+                }
+            }
+        }</codeblock>
+                <p>For more information about handling events, see "event handlers" section.</p>
+            </body>
+        </topic>
+        <topic id="inputnotify-events">
+            <title>InputNotify events</title>
+            <body>
+                <p>Input events are events that indicate that input has been received by an input
+                    HAL device.</p>
+                <codeblock xml:space="preserve">Only input HAL devices can generate an "InputNotify" event.
+However, all HAL devices
+(with the exception of [LPM](../hal_devices/low_power.md), Flash, and Graphics devices)
+are able to respond to an "InputNotify" event.</codeblock>
+                <p>Examples of input events include:</p>
+                <ul>
+                    <li><p>Button pressed</p></li>
+                    <li><p>Shell command received</p></li>
+                    <li><p>Wi-Fi/BLE input received</p></li>
+                </ul>
+                <p>The event to generate for a given input is decided by the device which receives
+                    the input.</p>
+                <p>For example, the Push-Button device associates different events based on the
+                    different button presses and the duration of those button presses, either long
+                    or short presses.</p>
+                <codeblock xml:space="preserve" outputclass="c">    switch (button)
+    {
+        case kSwitchID_1:
+            if (pressType == kSwitchPressType_Long)
+            {
+                LOGD("Long PRESS Detected.");
+                unsigned int totalUsageCount;
+                FWK_LpmManager_RequestStatus(&amp;totalUsageCount);
+                FWK_LpmManager_EnableSleepMode(kLPMManagerStatus_SleepEnable);
+            }
+            break;
+
+        case kSwitchID_2:
+            if ((pressType == kSwitchPressType_Short) || (pressType == kSwitchPressType_Long))
+            {
+                *receiverList                    = 1 &lt;&lt; kFWKTaskID_VisionAlgo;
+                s_FaceRecEvent.eventBase.eventId = kEventFaceRecID_DelUser;
+                s_FaceRecEvent.delFace.hasName   = false;
+                s_FaceRecEvent.delFace.hasID     = false;
+                *event                           = &amp;s_FaceRecEvent;
+            }
+            break;
+
+        case kSwitchID_3:
+            if ((pressType == kSwitchPressType_Short) || (pressType == kSwitchPressType_Long))
+            {
+                *receiverList                    = 1 &lt;&lt; kFWKTaskID_VisionAlgo;
+                s_FaceRecEvent.eventBase.eventId = kEventFaceRecID_AddUser;
+                s_FaceRecEvent.addFace.hasName   = false;
+                *event                           = &amp;s_FaceRecEvent;
+            }
+            break;
+
+        default:
+            ret = kStatus_Fail;
+            break;
+    }</codeblock>
+                <p>Alongside an input event, the HAL device from which the event originated may also
+                    relay additional information. Depending on the event, this may correspond to the
+                    button that was pressed, the shell command and args that were received, and so
+                    on.</p>
+                <p>In the above example, we can see that pressing the SW3 push button generates a
+                        <codeph>kEventFaceRecID_AddUser</codeph> event, specifying that there is no
+                    name for the face to add.</p>
+                <codeblock xml:space="preserve">A list of general events can be found in `hal_event_descriptor_common.h`, while a list of face recognition-specific events can be found in `hal_event_descriptor_face_rec.h`.
+It is recommended that new events be added to the `hal_event_descriptor_common.h` file.</codeblock>
+                <p>To respond to an "InputNotify" event, a HAL device must implement an
+                        <codeph>inputNotify</codeph> handler function. When an "InputNotify" event
+                    is triggered, each manager which receives the event attempts to call the
+                        <codeph>inputNotify</codeph> method of every one of its devices, (assuming
+                    the device has implemented an <codeph>inputNotify</codeph> method).</p>
+                <p>For more information regarding event handlers, see "event handlers" section.</p>
+            </body>
+        </topic>
+    </topic>
+</topic>

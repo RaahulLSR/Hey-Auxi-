@@ -1,0 +1,8 @@
+*.patch
+.vscode/
+ozone.jdebug.user
+docs/latex/*
+docs/build/html/_images/*
+docs/build/html/_sources/*
+docs/build/html/_static/css/fonts/*
+

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dita PUBLIC "-//OASIS//DTD DITA Composite//EN" "ditabase.dtd">
+<dita>
+    <topic id="introduction">
+        <title>Introduction</title>
+        <body>
+            <p>We created the template to demonstrate the Smart HMI application with LVGL GUI, Face
+                Recognition and Far-Field Voice Recognition AI/ML algorithms integrated.</p>
+            <p>You can leverage this template to quickly build your own applications:</p>
+            <p>-- Create your fancy GUI with open-source LVGL library</p>
+            <p>-- Use the Face Recognition as the user identity</p>
+            <p>-- Use the Far-Field Voice Recognition as the touchless interface</p>
+        </body>
+    </topic>
+    <topic id="build-the-lvgl-gui">
+        <title>Build the LVGL GUI</title>
+        <body>
+            <p>LVGL is a free and open-source embedded graphic library with features that enable you
+                to create embedded GUIs with intuitive graphical elements, beautiful visual effects
+                and a low memory footprint. The complete graphic framework includes a variety of
+                widgets for you to use in the creation of your GUI, and supports more advanced
+                functions such as animations and anti-aliasing.</p>
+            <p>To learn more about LVGL visit https://lvgl.io/</p>
+        </body>
+        <topic id="design-and-create-the-gui-with-nxps-free-gui-guider-tool">
+            <title>Design and create the GUI with NXP's free GUI Guider tool</title>
+            <body>
+                <p>GUI Guider is a user-friendly graphical user interface development tool from NXP
+                    that enables the rapid development of high quality displays with the open-source
+                    LVGL graphics library. GUI Guider's drag-and-drop editor makes it easy to
+                    utilize the many features of LVGL such as widgets, animations and styles to
+                    create a GUI with minimal or no coding at all.</p>
+                <p>To learn more about GUI Guider visit <xref
+                        href="https://www.nxp.com/design/software/development-software/gui-guider:GUI-GUIDER"
+                        format="html" scope="external"
+                        >https://www.nxp.com/design/software/development-software/gui-guider</xref></p>
+                <p>You can also refer our full GUI Guider project for Coffee Machine and Elevator
+                    demo as below:</p>
+                <p>-- Coffee Machine `coffee_machine/gui_guider/TLHMI_Coffee_Demo_LGVLv8_Landscape.guiguider`</p>
+                <p>-- Elevator `elevator/gui_guider/TLHMI_Elevator_Demo.guiguider`</p>
+            </body>
+        </topic>
+        <topic id="integrate-your-generated-lvgl-gui-code">
+            <title>Integrate your generated LVGL GUI code</title>
+            <body>
+                <p>The whole GUI code is running in the CM4 core and built into the CM4 project.</p>
+                <p>By default below function is the main entry of the whole LVGL GUI which is
+                    located in your generated GUI code `../coffee_machine/cm4/generated/gui_guider.c`</p>
+                <codeblock xml:space="preserve" outputclass="c">void setup_ui(lv_ui *ui)
+{
+    setup_scr_standby(ui);
+    lv_scr_load(ui-&gt;standby);
+}</codeblock>
+                <p>We created the LVGL Display HAL device to handle the LVGL initialization and the
+                    GUI launch. The <codeph>void setup_ui(lv_ui *ui)</codeph> will be called in this
+                    HAL device, therefore you must replace the "generated" folder with your GUI code
+                    in the CM4 project, and the whole UI be launched during the start-up.</p>
+                <p>You can also refer the LVGL Display HAL device implementation for the Coffee
+                    Machine demo and Elevator demo as below:</p>
+                <p>-- Coffee Machine `../framework/hal/display/hal_display_lvgl_coffeemachine.c`></p>
+                <p>-- Elevator `../framework/hal/display/hal_display_lvgl_elevator.c`</p>
+                <p>To learn more about Display HAL device refer to `../framework/docs/hal_devices/display.md`</p>
+            </body>
+        </topic>
+    </topic>
+    <topic id="build-the-phoneme-based-voice-recognition-model">
+        <title>Build the phoneme-based voice recognition model</title>
+        <body>
+            <p>We enabled the Far-Field Voice Recognition by phoneme-based Automatic Speech
+                Recognition (ASR) engine. NXP partners with Cyberon for generating the phoneme-based
+                voice engines. Please refer our dedicate sections <xref
+                    href="voice/dsmt_instructions.md" format="markdown">dsmt_instructions.md</xref>
+                for how to build your phoneme-based voice engine.</p>
+            <p>We created the Voice Algorithm HAL device to handle the whole voice recognition.</p>
+            <p>Refer the Voice algorithm HAL device implementation for the Coffee Machine demo and
+                Elevator demo as below:</p>
+            <p>-- Coffee Machine and Elevator Voice Algorithm HAL `../framework/hal/voice/hal_voice_algo_dsmt_asr.c`</p>
+            <p>-- Coffee Machine voice recognition models `../coffee_machine/cm7/local_voice/` folder</p>
+            <p>-- Elevator voice recognition models `../elevator/cm7/local_voice` folder</p>
+            <p>The voice recognition is running in CM7 and the whole Voice algorithm HAL device and
+                voice models are built into CM7 project.</p>
+        </body>
+    </topic>
+    <topic id="bind-the-users-profile-data-with-face-recognition">
+        <title>Bind the user's profile data with face recognition</title>
+        <body>
+            <p>The face recognition algorithm and face feature database have been implemented. You
+                can use them as the user identity for your application.</p>
+            <p>They are all running on the CM7 and built into CM7 project.</p>
+            <p>You can refer the implementation for the Coffee Machine demo and Elevator demo as
+                below:</p>
+            <p>-- Face recognition algorithm for Coffee Machine `../framework/hal/vision/hal_vision_algo_oasis_coffeemachine.c`</p>
+            <p>-- Face recognition algorithm for Elevator `../framework/hal/vision/hal_vision_algo_oasis_coffeemachine.c`</p>
+            <p>-- Face feature database `../framework/hal/vision/hal_sln_facedb.c``</p>
+            <p>We have implemented the framework flash APIs based on the little fs. You can define
+                the user's profile data structure and implement the user's profile database base on
+                these well-defined APIs.</p>
+            <p>You can refer the user's profile database implementation for the Coffee Machine demo
+                and Elevator demo as below:</p>
+            <p>-- User's profile data base for Coffee Machine `../coffee_machine/cm7/source/hal_sln_coffeedb.c`</p>
+            <p>-- User's profile data base for Elevator `../elevator/cm7/source/hal_sln_elevatordb.c`</p>
+        </body>
+    </topic>
+    <topic id="implement-the-use-case-flow-for-your-application">
+        <title>Implement the use case flow for your application</title>
+        <body>
+            <p>We created the UI Output HAL device to handle the APP use case flow. It controls the
+                face recognition HAL device, voice recognition HAL device and the LVGL UI. The
+                inference results from face recognition HAL device and voice recognition HAL device
+                will also be posted into this output device.</p>
+            <p>To learn more about Output HAL device refer to `../framework/docs/hal_devices/output.md`></p>
+            <p>You can refer the UI Output HAL device implementation for the Coffee Machine demo and
+                Elevator demo as below:</p>
+            <p>-- Coffee Machine `../framework/hal/output/hal_output_ui_coffee_machine.c`</p>
+            <p>-- Elevator `../framework/hal/output/hal_output_ui_elevator.c"</p>
+        </body>
+    </topic>
+</dita>

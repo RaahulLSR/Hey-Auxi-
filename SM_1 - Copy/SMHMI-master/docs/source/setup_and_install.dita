@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="setup-and-installation">
+    <title>Setup and Installation</title>
+    <prolog>
+        <data name="sidebar_position" value="2"/>
+    </prolog>
+    <body>
+        <p>This section is focused on the setup and installation of the tools necessary to begin
+            developing applications using NXP's framework architecture.</p>
+        <codeblock xml:space="preserve">This guide focuses on the use of [MCUXpresso IDE](https://www.nxp.com/design/software/development-software/mcuxpresso-software-and-tools-/mcuxpresso-integrated-development-environment-ide) for development.</codeblock>
+    </body>
+    <topic id="mcuxpresso-ide">
+        <title>MCUXpresso IDE</title>
+        <body>
+            <p>MCUXpresso IDE brings developers an easy-to-use Eclipse-based development environment
+                for NXP MCUs based on Arm Cortex-M cores, including its general-purpose crossover
+                and Bluetooth-enabled MCUs. MCUXpresso IDE offers advanced editing, compiling, and
+                debugging features with the addition of MCU-specific debugging views, code trace and
+                profiling, multicore debugging, and integrated configuration tools. MCUXpresso IDE
+                debug connections support Freedom, Tower system, LPCXpresso, i.MX RT-based EVKs, and
+                your custom development boards with industry-leading open-source and commercial
+                debug probes from NXP, P&amp;E Micro, and SEGGER.</p>
+            <p>For more information, see the <xref
+                    href="https://www.nxp.com/design/software/development-software/mcuxpresso-software-and-tools-/mcuxpresso-integrated-development-environment-ide"
+                    format="html" scope="external">NXP website</xref></p>
+        </body>
+    </topic>
+    <topic id="install-the-toolchain">
+        <title>Install the toolchain</title>
+        <body>
+            <p>MCUXpresso IDE can be downloaded from the NXP website by using the below link:</p>
+            <p><xref
+                    href="https://www.nxp.com/webapp/swlicensing/sso/downloadSoftware.sp?catid=MCUXPRESSO"
+                    format="sp" scope="external">Get MCUXpresso IDE</xref></p>
+            <fig>
+                <image href="img/Download_MCUXpresso_IDE.jpg"/>
+            </fig>
+            <p>To download the correct version of IDE, check out the <xref
+                    href="https://www.nxp.com/document/guide/getting-started-with-the-sln-tlhmi-iot:GS-SLN-TLHMI-IOT"
+                    format="html" scope="external">Getting Started Guide</xref>. Once the download
+                has been completed, follow the instructions in the installer to get started.</p>
+            <codeblock xml:space="preserve">There is a bug in version 11.5.1 of MCUXpresso IDE that prevents building projects for SLN-TLHMI-IOT, so version 11.5.0 or 11.7.0</codeblock>
+            <fig>
+                <image href="img/Check_MCUXpresso_IDE_version.jpg"/>
+            </fig>
+        </body>
+    </topic>
+    <topic id="install-the-sdk">
+        <title>Install the SDK</title>
+        <body>
+            <p>To build projects using MCUXpresso IDE, install an SDK for the platform you intend to
+                use. A compatible SDK has the required dependencies and platform-specific drivers
+                needed to compile projects.</p>
+            <p>A compatible SDK can be downloaded from the official <xref
+                    href="https://mcuxpresso.nxp.com/en/select" format="html" scope="external">NXP
+                    SDK builder</xref></p>
+            <ol>
+                <li><p>To build the SDK for your preferred setup, use MCUXpresso IDE to install the
+                        SDK.</p></li>
+                <li><p>To do this, open the application and click Download and Install SDKs on the
+                        MCUXpresso IDE welcome screen as shown below:</p></li>
+            </ol>
+            <fig>
+                <image href="img/Download_and_Install_SDKs.jpg"/>
+            </fig>
+            <ol>
+                <li><p>A catalog of all the SDKs that can be downloaded through MCUXpresso is
+                        available. These SDKs provide device knowledge, drivers, middleware, and
+                        reference example applications for your development board or MCU. Type
+                            <codeph>evkmimxrt1170</codeph> in the filter section and download
+                        evkmimxrt1170 SDK. The current applications were developed and tested on SDK
+                        2.11.1.</p></li>
+            </ol>
+            <fig>
+                <image href="img/Download_RT1170_SDK.jpg"/>
+            </fig>
+            <ol>
+                <li><p>A prompt displays the license agreement associated with the 1170
+                    SDK.</p></li>
+                <li><p>Read and accept the license to automatically start the SDK
+                    installation.</p></li>
+                <li><p>MCUXpresso proceeds to download the SDK.</p></li>
+            </ol>
+            <fig>
+                <image href="img/Install_RT1170_SDK.jpg"/>
+            </fig>
+        </body>
+    </topic>
+    <topic id="import-example-projects">
+        <title>Import example projects</title>
+        <body>
+            <codeblock xml:space="preserve">To build example projects that you import regardless of how they are imported, you must have a compatible MCUXpresso SDK package for SLN-TLHMI-IOT installed.</codeblock>
+            <p>MCUXpresso IDE allows you open example projects from the source folder.</p>
+        </body>
+        <topic id="import-from-github">
+            <title>Import from Github</title>
+            <body>
+                <codeblock xml:space="preserve">Before you begin, make sure you have [ Git ](https://git-scm.com/downloads) downloaded and installed on the machine you intend to use.</codeblock>
+                <p>The latest software updates for the SLN-TLHMI-IOT application can be downloaded
+                    from our official <xref href="https://github.com/NXP/sln_tlhmi_iot"
+                        format="html" scope="external">Github repository</xref>. Here, you will find
+                    the most up-to-date version of the code that contains the newest features
+                    available for the Smart TLHMI project.</p>
+                <p>To import the SLN-TLHMI-IOT Smart TLHMI application into MCUXpresso IDE using
+                    Github, perform the following steps:</p>
+                <ol>
+                    <li><p>Clone the <b>sln_tlhmi_iot</b> repository.</p><ul>
+                            <li><p>Cloning directly to your MCUXpresso workspace location is
+                                    recommended, but not required.</p></li>
+                        </ul></li>
+                    <li><p>In MCUXpresso, navigate to the <b>File</b> from Toolbar.</p></li>
+                    <li><p>Click <b>Open Projects from File System...</b>.</p></li>
+                    <li><p>Select <b>Directory...</b>.</p></li>
+                    <li><p>Navigate to the file path of the project cloned in the first step and
+                            click <b>Select Folder</b>.</p></li>
+                    <li><p>Check the box next to each project (bootloader, coffee_machine\cm4,
+                            coffee_machine\cm7, coffee_machine\lvgl_vglite_lib and elevator\cm4,
+                            elevator\cm7, elevator\lvgl_vglite_lib) you wish to import.</p></li>
+                    <li><p>Click <b>Finish</b></p></li>
+                </ol>
+                <fig>
+                    <image href="img/Open_SLN-TLHMI-IOT_projects.jpg"/>
+                </fig>
+                <p>After following the above steps, confirm that the projects can be found in the
+                        <b>Project Explorer</b> panel to ensure they were successfully imported.</p>
+                <fig>
+                    <image href="img/Example_projects.jpg"/>
+                </fig>
+            </body>
+        </topic>
+    </topic>
+</topic>

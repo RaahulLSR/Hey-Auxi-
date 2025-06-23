@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="vision-algorithm-manager">
+    <title>Vision algorithm manager</title>
+    <body>
+        <p>The Vision algorithm manager manages the vision algorithm HAL devices that can be
+            registered into the system.</p>
+    </body>
+    <topic id="apis">
+        <title>APIs</title>
+        <body/>
+        <topic id="fwk-visionalgomanager-init">
+            <title>FWK_VisionAlgoManager_Init</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Init internal structures for VisionAlgo manager.
+ * @return int Return 0 if the init process was successful
+ */
+int FWK_VisionAlgoManager_Init();</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-visionalgomanager-deviceregister">
+            <title>FWK_VisionAlgoManager_DeviceRegister</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Register a vision algorithm device. All algorithm devices need to be registered before
+ * FWK_VisionAlgoManager_Start is called
+ * @param dev Pointer to a vision algo device structure
+ * @return int Return 0 if registration was successful
+ */
+int FWK_VisionAlgoManager_DeviceRegister(vision_algo_dev_t *dev);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-visionalgomanager-start">
+            <title>FWK_VisionAlgoManager_Start</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Spawn VisionAlgo manager task which will call init/start for all registered VisionAlgo devices
+ * @return int Return 0 if the starting process was successul
+ */
+int FWK_VisionAlgoManager_Start();</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-visionalgomanager-deinit">
+            <title>FWK_VisionAlgoManager_Deinit</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Deinit VisionAlgoManager
+ * @return int Return 0 if the deinit process was successful
+ */
+int FWK_VisionAlgoManager_Deinit();</codeblock>
+                <codeblock xml:space="preserve">Calling this function is unnecessary in most applications and must be used with caution.</codeblock>
+            </body>
+        </topic>
+    </topic>
+</topic>

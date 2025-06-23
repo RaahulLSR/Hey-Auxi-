@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="input-devices">
+    <title>Input Devices</title>
+    <body>
+        <p>The <codeph>Input</codeph> HAL device provides an abstraction to implement a variety of
+            devices which may capture data in many different ways, and whose data can represent many
+            different things. The Input HAL device definition is designed to encapsulate everything
+            from physical devices like push buttons, to "virtual" devices like a command line
+            interface using UART.</p>
+        <p>Input devices are used to acquire external input data and forward that data to other HAL
+            devices via the Input Manager so that those devices can respond to that data
+            accordingly. The Input Manager communicates to other devices within the framework using
+                <codeph>inputNotify</codeph> event messages. For more information about events and
+            event handling, see "/events/overview.md".</p>
+        <p>As with other device types, <codeph>Input</codeph> devices are controlled via their
+            manager. The Input Manager is responsible for managing all registered input HAL devices,
+            and invoking input device operators (<codeph>init</codeph>, <codeph>start</codeph>,
+                <codeph>dequeue</codeph>, etc.) as necessary. Additionally, the Input Manager allows
+            for multiple input devices to be registered and operate at once.</p>
+    </body>
+    <topic id="device-definition">
+        <title>Device Definition</title>
+        <body>
+            <p>The HAL device definition for <codeph>Input</codeph> devices can be found under
+                "framework/hal_api/hal_input_dev.h" and is reproduced below:</p>
+            <codeblock xml:space="preserve" outputclass="c">/*! @brief Attributes of an input device */
+typedef struct _input_dev
+{
+    /* unique id which is assigned by input manager during the registration */
+    int id;
+    /* name of the device */
+    char name[DEVICE_NAME_MAX_LENGTH];
+    /* operations */
+    const input_dev_operator_t *ops;
+    /* private capability */
+    input_dev_private_capability_t cap;
+} input_dev_t;</codeblock>
+            <p>The device <codeph>operators</codeph> associated with input HAL devices are as shown
+                below:</p>
+            <codeblock xml:space="preserve" outputclass="c">/*! @brief Operation that needs to be implemented by an input device */
+typedef struct
+{
+    /* initialize the dev */
+    hal_input_status_t (*init)(input_dev_t *dev, input_dev_callback_t callback);
+    /* deinitialize the dev */
+    hal_input_status_t (*deinit)(const input_dev_t *dev);
+    /* start the dev */
+    hal_input_status_t (*start)(const input_dev_t *dev);
+    /* start the dev */
+    hal_input_status_t (*stop)(const input_dev_t *dev);
+    /* notify the input_dev */
+    hal_input_status_t (*inputNotify)(const input_dev_t *dev, void *param);
+} input_dev_operator_t;</codeblock>
+            <p>The device <codeph>capabilities</codeph> associated with input HAL devices are as
+                shown below:</p>
+            <codeblock xml:space="preserve" outputclass="c">typedef struct
+{
+    /* callback */
+    input_dev_callback_t callback;
+} input_dev_private_capability_t;</codeblock>
+        </body>
+    </topic>
+    <topic id="operators">
+        <title>Operators</title>
+        <body>
+            <p>Operators are functions which "operate" on a HAL device itself. Operators are akin to
+                "public methods" in object oriented-languages, and are used by the Input Manager to
+                setup, start, etc. each of its registered input devices.</p>
+            <p>For more information about operators, see <codeph>Operators</codeph>.</p>
+        </body>
+        <topic id="init">
+            <title>Init</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/* initialize the dev */
+hal_input_status_t (*init)(input_dev_t *dev, input_dev_callback_t callback);</codeblock>
+                <p>Initialize the input device.</p>
+                <p><codeph>Init</codeph> should initialize any hardware resources the input device
+                    requires (I/O ports, IRQs, etc.), turn on the hardware, and perform any other
+                    setup the device requires.</p>
+                <p>The <codeph>callback</codeph> function to the device's manager is typically
+                    installed as part of the <codeph>Init</codeph> function as well.</p>
+                <p>This operator will be called by the Input Manager when the Input Manager task
+                    first starts.</p>
+            </body>
+        </topic>
+        <topic id="deinit">
+            <title>Deinit</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/* deinitialize the dev */
+hal_input_status_t (*deinit)(const input_dev_t *dev);</codeblock>
+                <p>"Deinitialize" the input device.</p>
+                <p><codeph>DeInit</codeph> should release any hardware resources the input device
+                    uses (I/O ports, IRQs, etc.), turn off the hardware, and perform any other
+                    shutdown the device requires.</p>
+                <p>This operator will be called by the Input Manager when the Input Manager task
+                        ends<sup>[1]</sup>.</p>
+                <codeblock xml:space="preserve"><sup>[1]</sup>The `DeInit` function generally will not be called under normal operation.</codeblock>
+            </body>
+        </topic>
+        <topic id="start">
+            <title>Start</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/* start the dev */
+hal_input_status_t (*start)(const input_dev_t *dev);</codeblock>
+                <p>Start the input device.</p>
+                <p>The <codeph>Start</codeph> operator will be called in the initialization stage of
+                    the Input Manager's task after the call to the <codeph>Init</codeph> operator.
+                    The startup of the display sensor and interface should be implemented in this
+                    operator. This includes, for example, starting the interface and enabling the
+                    IRQ of the DMA used by the interface.</p>
+            </body>
+        </topic>
+        <topic id="stop">
+            <title>Stop</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/* start the dev */
+hal_input_status_t (*stop)(const input_dev_t *dev);</codeblock>
+                <p>Stop the input device.</p>
+                <p>The <codeph>Stop</codeph> operator functions as the inverse of the
+                        <codeph>Start</codeph> function and will generally not be called under
+                    normal operation.</p>
+            </body>
+        </topic>
+        <topic id="inputnotify">
+            <title>InputNotify</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/* notify the input_dev */
+hal_input_status_t (*inputNotify)(const input_dev_t *dev, void *param);</codeblock>
+                <p>Handle input events.</p>
+                <p>The <codeph>InputNotify</codeph> operator is called by the Input Manager whenever
+                    a <codeph>kFWKMessageID_InputNotify</codeph> message received by and forwarded
+                    from the Input Manager's message queue.</p>
+                <p>For more information regarding events and event handling, see
+                    "events/overview.md".</p>
+            </body>
+        </topic>
+    </topic>
+    <topic id="capabilities">
+        <title>Capabilities</title>
+        <body>
+            <codeblock xml:space="preserve" outputclass="c">typedef struct
+{
+    /* callback */
+    input_dev_callback_t callback;
+} input_dev_private_capability_t;</codeblock>
+            <p>The <codeph>capabilities</codeph> struct is primarily used for storing a callback to
+                communicate information from the device back to the Input Manager. This callback
+                function is typically installed via a device's <codeph>init</codeph> operator.</p>
+        </body>
+        <topic id="callback">
+            <title>callback</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief callback function to notify input manager with an async event
+ * @param dev Device structure
+ * @param eventId Id of the event that took place
+ * @param receiverList List with managers that should be notify
+ * @param event Pointer to a event structure.
+ * @param size If size is 0 event should be in a persistent memory zone else the framework will allocate memory for the
+ * object Note the message delivery might go slow if the size is too much.
+ * @param fromISR True if this operation takes place in an irq, 0 otherwise
+ * @return 0 if the operation was successfully
+ */
+typedef int (*input_dev_callback_t)(const input_dev_t *dev,
+                                    input_event_id_t eventId,
+                                    unsigned int receiverList,
+                                    input_event_t *event,
+                                    unsigned int size,
+                                    uint8_t fromISR);</codeblock>
+                <p>Callback to the Input Manager.</p>
+                <p>The <codeph>capabilities</codeph> struct is primarily used for storing a callback
+                    to communicate information from the device back to the Input Manager.</p>
+                <p>The Vision Algorithm manager will provide the callback to the device when the
+                        <codeph>init</codeph> operator is called. As a result, the HAL device should
+                    make sure to store the callback in the <codeph>init</codeph> operator's
+                    implementation.</p>
+                <codeblock xml:space="preserve" outputclass="c">static hal_input_status_t HAL_InputDev_PushButtons_Init(input_dev_t *dev, input_dev_callback_t callback)
+{
+    hal_input_status_t error = 0;
+
+    /* PERFORM INIT FUNCTIONALITY HERE */
+
+    /* Installing callback function from manager... */
+    memset(&amp;dev-&gt;cap, 0, sizeof(dev-&gt;cap));
+    dev-&gt;cap.callback = callback;
+
+    return ret;
+}</codeblock>
+                <p>The HAL device invokes this callback to notify the vision algorithm manager of
+                    specific events.</p>
+                <p>The definition for <codeph>valgo_dev_callback_t</codeph> is as shown below:</p>
+                <codeblock xml:space="preserve" outputclass="c">typedef int (*input_dev_callback_t)(const input_dev_t *dev,
+                                    input_event_id_t eventId,
+                                    unsigned int receiverList,
+                                    input_event_t *event,
+                                    unsigned int size,
+                                    uint8_t fromISR);</codeblock>
+                <p>The fields passed as part of the callback are described in more detail below.</p>
+            </body>
+        </topic>
+        <topic id="eventid">
+            <title>eventId</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">typedef enum _input_event_id
+{
+    kInputEventID_Recv,
+    kInputEventID_AudioRecv,
+    kInputEventID_FrameworkRecv,
+} input_event_id_t;</codeblock>
+                <p>Describes the type of source event being sent/received.</p>
+            </body>
+        </topic>
+        <topic id="receiverlist">
+            <title>receiverList</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">typedef enum _fwk_task_id
+{
+    kFWKTaskID_Camera = 0, /* This should always stay first */
+    kFWKTaskID_Display,
+    kFWKTaskID_VisionAlgo,
+    kFWKTaskID_VoiceAlgo,
+    kFWKTaskID_Output,
+    kFWKTaskID_Input,
+    kFWKTaskID_Audio,
+    kFWKTaskID_APPStart, /* APP task ID should always start from here */
+    kFWKTaskID_COUNT = (kFWKTaskID_APPStart + APP_TASK_COUNT)
+} fwk_task_id_t;</codeblock>
+                <p>List of device managers meant to receive the input event message.</p>
+            </body>
+        </topic>
+        <topic id="event">
+            <title>event</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">typedef struct _input_event
+{
+    union
+    {
+        /* Valid when message is kInputEventID_RECV */
+        void *inputData;
+
+        /* Valid when eventId is kInputEventID_AudioRECV */
+        void *audioData;
+
+        /* Valid when framework information is needed GET_FRAMEWORK_INFO*/
+        framework_request_t *frameworkRequest;
+    };
+} input_event_t;</codeblock>
+            </body>
+        </topic>
+    </topic>
+    <topic id="example">
+        <title>Example</title>
+        <body>
+            <p>The project has several input devices implemented for use as-is or for use as
+                reference for implementing new input devices. Source files for these input HAL
+                devices can be found under "framework/hal/input/".</p>
+            <p>Below is an example of a push button input HAL device driver:</p>
+            <codeblock xml:space="preserve" outputclass="c">static input_event_t inputEvent;
+
+const static input_dev_operator_t s_InputDev_ExampleDevOps = {
+    .init        = HAL_InputDev_ExampleDev_Init,
+    .deinit      = HAL_InputDev_ExampleDev_Deinit,
+    .start       = HAL_InputDev_ExampleDev_Start,
+    .stop        = HAL_InputDev_ExampleDev_Stop,
+    .inputNotify = HAL_InputDev_ExampleDev_InputNotify,
+};
+
+static input_dev_t s_InputDev_ExampleDev = {
+    .name = "buttons",
+    .ops = &amp;s_InputDev_ExampleDevOps,
+    .cap = {
+        .callback = NULL
+    },
+};
+
+/* here assume buttons push event will call this handler */
+void HAL_InputDev_ExampleDev_EvtHandler(void)
+{
+    /* Add manager task list need notify, the id is from fwk_task_id_t.
+     * Note: here can set not only one task manager.
+     */
+    receiverList = 1 &lt;&lt; kFWKTaskID_Display;
+
+    /* load input data */
+    inputEvent.inputData = NULL;
+
+    /* callback inputmanager notify the corresponding manager from receiverList */
+    inputDev.cap.callback(&amp;inputDev, kInputEventID_Recv, receiverList, &amp;inputEvent, 0, fromISR);
+}
+
+hal_input_status_t HAL_InputDev_ExampleDev_Init(input_dev_t *dev, input_dev_callback_t callback)
+{
+    hal_input_status_t ret = kStatus_HAL_InputSuccess;
+
+    /* install manager callback for device */
+    dev-&gt;cap.callback = callback;
+
+    /* put hardware init here */
+
+    return ret;
+}
+
+hal_input_status_t HAL_InputDev_ExampleDev_Deinit(const input_dev_t *dev)
+{
+    hal_input_status_t ret = kStatus_HAL_InputSuccess;
+
+    /* put device deinit here */
+
+    return ret;
+}
+
+hal_input_status_t HAL_InputDev_ExampleDev_Start(const input_dev_t *dev)
+{
+    hal_input_status_t ret = kStatus_HAL_InputSuccess;
+
+    /* put device start here */
+
+    return ret;
+}
+
+hal_input_status_t HAL_InputDev_ExampleDev_Stop(const input_dev_t *dev)
+{
+    hal_input_status_t ret = kStatus_HAL_InputSuccess;
+
+    /* put device stop here */
+
+    return ret;
+}
+
+hal_input_status_t HAL_InputDev_ExampleDev_InputNotify(const input_dev_t *dev, void *param)
+{
+    hal_input_status_t ret = kStatus_HAL_InputSuccess;
+
+    /* add device notify handler here */
+
+    return ret;
+}
+
+int HAL_InputDev_ExampleDev_Register(void)
+{
+    int ret = 0;
+    ret = FWK_InputManager_DeviceRegister(&amp;s_InputDev_ExampleDev);
+    return ret;
+}</codeblock>
+        </body>
+    </topic>
+</topic>

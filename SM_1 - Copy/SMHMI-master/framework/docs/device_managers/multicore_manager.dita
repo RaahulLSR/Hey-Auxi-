@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="multicore-manager">
+    <title>Multicore manager</title>
+    <body>
+        <p>Multicore manager manages the multicore HAL device that can be registered into the
+            system. In the current framework implementation, there are two ways of making a message
+            multicore:</p>
+        <ol>
+            <li><p>isMulticoreMessage flag set to 1</p><p>A message constructed with
+                    isMulticoreMessage set to 1, becomes automatically a multicast message and is
+                    sent to both cores. The <codeph>taskId</codeph> field specifies the task that
+                    must handle the message from the other core. The below code snip shows how the
+                    message is sent to both CM4/CM7 with the Multicore manager as <codeph>the man in
+                        the
+                    middle</codeph>.</p><codeblock xml:space="preserve" outputclass="c">pVAlgoResMsg-&gt;multicore.isMulticoreMessage = 1;
+pVAlgoResMsg-&gt;multicore.taskId             = kFWKTaskID_Output;
+FWK_Message_Put(kFWKTaskID_VisionAlgo, &amp;pVAlgoResMsg);</codeblock><p>If the
+                    message has been sent by the CM7/Camera_Manager, the message is sent to
+                    CM7/VisionAlgo and to CM4/Output via Multicore
+                Manager</p><codeblock xml:space="preserve" outputclass="bash">FWK_Message_Put(kFWKTaskID_VisionAlgo, &amp;pVAlgoResMsg);
+├── Message send to CM7/kFWKTaskID_VisionAlgo
+└── Message send to CM7/Multicore Manager -&gt; Deep Copy -&gt; Message send to CM4/Multicore Manager -&gt; Message send to CM4/pVAlgoResMsg.taskId</codeblock></li>
+            <li><p>isMulticoreMessage field set to 0</p><p>A message constructed with
+                    isMulticoreMessage set to 0 is a unicast message sent only to the task specified
+                    in the FWK_Message_Put. If the task is Multicore, an additional
+                        <codeph>taskId</codeph> must be
+                    specified:</p><codeblock xml:space="preserve" outputclass="c">pAudioReqMsg-&gt;multicore.isMulticoreMessage = 0;
+pAudioReqMsg-&gt;multicore.taskId             = kFWKTaskID_Output;
+FWK_Message_Put(kFWKTaskID_Multicore, &amp;pAudioReqMsg);</codeblock><p>If the
+                    message has been sent by the CM7/Camera_Manager, the message will be send only
+                    to CM4/Output via Multicore
+                Manager</p><codeblock xml:space="preserve" outputclass="bash">FWK_Message_Put(kFWKTaskID_Multicore, &amp;pAudioReqMsg);
+└── Message send to CM7/Multicore Manager -&gt; Deep Copy -&gt; Message send to CM4/Multicore Manager -&gt; Message send to CM4/pAudioReqMsg.taskId</codeblock></li>
+        </ol>
+        <p>When sending a message, a deep copy of the message is done by the Multicore Manager. The
+            purpose of the deep copy is to avoid sending references from untouchable regions (for
+            example, CM7 sending a reference that points to internal TCM memory that cannot be seen
+            by CM4). Deep copy ensures that the messages are stored in a shared buffer, therefore
+            the messages must be small.</p>
+        <p>If bigger buffers must be sent, they have to be in a shared memory area and passed by
+            reference (camera buffers).</p>
+    </body>
+    <topic id="apis">
+        <title>APIs</title>
+        <body/>
+        <topic id="fwk-multicoremanager-init">
+            <title>FWK_MulticoreManager_Init</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Init internal structures for Multicore Manager
+ * @return int Return 0 if the init process was successful
+ */
+int FWK_MulticoreManager_Init();</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-multicoremanager-deviceregister">
+            <title>FWK_MulticoreManager_DeviceRegister</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Register a Multicore device. Only one multicore device is supported. The dev needs to be registered before
+ * FWK_MulticoreManager_Start is called
+ * @param dev Pointer to a camera device structure
+ * @return int Return 0 if registration was successful
+ */
+int FWK_MulticoreManager_DeviceRegister(multicore_dev_t *dev);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-multicoremanager-start">
+            <title>FWK_MulticoreManager_Start</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Spawn Multicore manager task which will call init/start for all registered multicore devices
+ * @param taskPriority the priority of the Multicore manager task
+ * @return int Return 0 if the starting process was successful
+ */
+int FWK_MulticoreManager_Start(int taskPriority);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-multicoremanager-deinit">
+            <title>FWK_MulticoreManager_Deinit</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Deinit MulticoreManager
+ * @return int Return 0 if the deinit process was successful
+ */
+int FWK_MulticoreManager_Deinit();</codeblock>
+            </body>
+        </topic>
+    </topic>
+</topic>

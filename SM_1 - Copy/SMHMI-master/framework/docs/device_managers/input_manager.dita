@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="input-manager">
+    <title>Input manager</title>
+    <body>
+        <p>The Input manager manages the input HAL devices which can be registered into the
+            system.</p>
+    </body>
+    <topic id="apis">
+        <title>APIs</title>
+        <body/>
+        <topic id="fwk-inputmanager-init">
+            <title>FWK_InputManager_Init</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Init internal structures for input manager.
+ * @return int Return 0 if the init process was successful
+ */
+int FWK_InputManager_Init();</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-inputmanager-deviceregister">
+            <title>FWK_InputManager_DeviceRegister</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Register an input device. All input devices need to be registered before FWK_InputManager_Start is called.
+ * @param dev Pointer to a display device structure
+ * @return int Return 0 if registration was successful
+ */
+int FWK_InputManager_DeviceRegister(input_dev_t *dev);</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-inputmanager-start">
+            <title>FWK_InputManager_Start</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Spawn Input manager task which will call init/start for all registered input devices
+ * @return int Return 0 if the starting process was successful
+ */
+int FWK_InputManager_Start();</codeblock>
+            </body>
+        </topic>
+        <topic id="fwk-inputmanager-deinit">
+            <title>FWK_InputManager_Deinit</title>
+            <body>
+                <codeblock xml:space="preserve" outputclass="c">/**
+ * @brief Denit internal structures for input manager.
+ * @return int Return 0 if the deinit process was successful
+ */
+int FWK_InputManager_Deinit();</codeblock>
+                <codeblock xml:space="preserve">Calling this function is unnecessary in most applications and must be used with caution.</codeblock>
+            </body>
+        </topic>
+    </topic>
+</topic>

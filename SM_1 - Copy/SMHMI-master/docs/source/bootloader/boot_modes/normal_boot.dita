@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="normal-boot">
+    <title>Normal boot</title>
+    <body>
+        <p>By default, if no other boot flags are set during the boot phase, the Normal boot mode is
+            used. During Normal boot, the Bootloader boots to the "main" application, which is
+            flashed at the current application bank flash address (see Application Banks for more
+            information). For example, if the current flash bank is set to Bank A, then the
+            Bootloader jumps to the flash address associated with Bank A and begins running the
+            application at that address.</p>
+        <p>The OOBE has a set of three applications that can be booted into at startup. By default,
+            the application always boots in the <codeph>Bank A</codeph>, which corresponds to
+                <codeph>coffee_machine app</codeph>. To change the boot application, use buttons
+            labeled <codeph>SW1-SW3</codeph> when powering the board.</p>
+        <p>The following list shows the associations of boot application to switch.</p>
+        <ul>
+            <li><p><codeph>SW1</codeph> - Bank A - coffee_machine</p></li>
+            <li><p><codeph>SW2</codeph> - Bank B - elevator</p></li>
+            <li><p><codeph>SW3</codeph> - Bank C - TBD</p></li>
+        </ul>
+        <p>The decision to what application to jump is handled inside the bootloader. To reach the
+            bootloader, a soft or hard reset is needed.</p>
+        <p>For example, to boot in elevator application:</p>
+        <ol>
+            <li><p>Unplug the board</p></li>
+            <li><p>Press and hold SW2 button</p></li>
+            <li><p>Plug the board in.</p></li>
+        </ol>
+        <p>From the Bootloader's perspective, there is no information what application it is jumping
+            into, because it uses addresses and not names. After an update procedure, the
+            application that was written in an inactive bank is overwritten, so the links between
+            banks and demos are not valid anymore.</p>
+    </body>
+    <topic id="turn-on-image-verification">
+        <title>Turn on image Verification</title>
+        <body>
+            <p>In the OOBE Bootloader demo, Image Verification is disabled to encourage developers
+                to play with the code. If Image Verification is enabled, Normal boot checks that the
+                image certificate for the firmware image to run has been signed by a trusted
+                certificate authority to ensure that the application comes from a trusted source.
+                Should the signature check fail, the Bootloader does not run the application to
+                avoid executing untrusted, potentially malicious firmware.</p>
+            <p>For more details regarding image verification, see Image Verification in the
+                "security/image_verification.md" file.</p>
+            <p>To enable the image verification, “DISABLE_IMAGE_VERIFICATION” must be set to 0
+                inside the <b>Preprocessors</b> sections:</p>
+            <ol>
+                <li><p>Within the MCUXpresso Bootloader project, right-click the root project and
+                        navigate to <b>Properties &gt; C/C++ Build &gt; Settings &gt; Preprocessor
+                        </b>.</p></li>
+                <li><p>Inside the <b>Preprocessors</b> section, change the MACRO
+                            <b>“DISABLE_IMAGE_VERIFICATION”</b> to “0” and click the <b>Apply and
+                            Close</b> button as describe in <xref href="#enable_image_verification"
+                            format="html">Figure</xref></p></li>
+            </ol>
+            <image href="../../img/bootloader/bootloader_EnableImageVerification.png"
+                placement="break">
+                <alt>Enable Image Verification</alt>
+            </image>
+            <ol>
+                <li><p>After that change, rebuild the Bootloader.</p></li>
+                <li><p>To flash the device with proper FICA and certificates, use the automated
+                        manufacturing tool 'Ivaldi' (refer to "security/ivaldi.md")</p></li>
+            </ol>
+        </body>
+    </topic>
+    <topic id="disable-debug-console">
+        <title>Disable Debug Console</title>
+        <body>
+            <p>In the OOBE Bootloader demo, Debug Console is enabled to help developers test and
+                debug their code. This feature introduces unwanted message being displayed and
+                increases the boot-up time. To disable this, set <codeph>ENABLE_LOGGING</codeph> to
+                0 in "FreeRTOSConfig.h"</p>
+            <codeblock xml:space="preserve">Current implementation of the debug console adds about 150 ms in boot time.</codeblock>
+        </body>
+    </topic>
+</topic>
